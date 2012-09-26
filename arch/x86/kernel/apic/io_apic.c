@@ -3136,7 +3136,7 @@ static struct irq_chip msi_chip = {
 	.irq_retrigger		= ioapic_retrigger_irq,
 };
 
-static int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc, int irq)
+int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc, int irq)
 {
 	struct irq_chip *chip = &msi_chip;
 	struct msi_msg msg;
@@ -3163,9 +3163,9 @@ static int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc, int irq)
 
 int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
 {
-	int node, ret, sub_handle, index = 0;
 	unsigned int irq, irq_want;
 	struct msi_desc *msidesc;
+	int node, ret;
 
 	/* x86 doesn't support multiple MSI yet */
 	if (type == PCI_CAP_ID_MSI && nvec > 1)
@@ -3173,36 +3173,16 @@ int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
 
 	node = dev_to_node(&dev->dev);
 	irq_want = nr_irqs_gsi;
-	sub_handle = 0;
 	list_for_each_entry(msidesc, &dev->msi_list, list) {
 		irq = create_irq_nr(irq_want, node);
 		if (irq == 0)
 			return -1;
-		irq_want = irq + 1;
-		if (!irq_remapping_enabled)
-			goto no_ir;
 
-		if (!sub_handle) {
-			/*
-			 * allocate the consecutive block of IRTE's
-			 * for 'nvec'
-			 */
-			index = msi_alloc_remapped_irq(dev, irq, nvec);
-			if (index < 0) {
-				ret = index;
-				goto error;
-			}
-		} else {
-			ret = msi_setup_remapped_irq(dev, irq, index,
-						     sub_handle);
-			if (ret < 0)
-				goto error;
-		}
-no_ir:
+		irq_want = irq + 1;
+
 		ret = setup_msi_irq(dev, msidesc, irq);
 		if (ret < 0)
 			goto error;
-		sub_handle++;
 	}
 	return 0;
 

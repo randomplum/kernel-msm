@@ -4,6 +4,8 @@
 #include <linux/cpumask.h>
 #include <linux/errno.h>
 #include <linux/msi.h>
+#include <linux/irq.h>
+#include <linux/pci.h>
 
 #include <asm/hw_irq.h>
 #include <asm/irq_remapping.h>
@@ -21,6 +23,10 @@ int no_x2apic_optout;
 
 static struct irq_remap_ops *remap_ops;
 
+static int msi_alloc_remapped_irq(struct pci_dev *pdev, int irq, int nvec);
+static int msi_setup_remapped_irq(struct pci_dev *pdev, unsigned int irq,
+				  int index, int sub_handle);
+
 static void irq_remapping_disable_io_apic(void)
 {
 	/*
@@ -34,9 +40,54 @@ static void irq_remapping_disable_io_apic(void)
 		disconnect_bsp_APIC(0);
 }
 
+static int irq_remapping_setup_msi_irqs(struct pci_dev *dev,
+					int nvec, int type)
+{
+	int node, ret, sub_handle, index = 0;
+	struct msi_desc *msidesc;
+	unsigned int irq;
+
+	/* We don't support multiple MSI yet */
+	if (type == PCI_CAP_ID_MSI && nvec > 1)
+		return 1;
+
+	node		= dev_to_node(&dev->dev);
+	irq		= get_nr_irqs_gsi();
+	sub_handle	= 0;
+
+	list_for_each_entry(msidesc, &dev->msi_list, list) {
+
+		irq = create_irq_nr(irq, node);
+		if (irq == 0)
+			return -1;
+
+		if (sub_handle == 0)
+			ret = index = msi_alloc_remapped_irq(dev, irq, nvec);
+		else
+			ret = msi_setup_remapped_irq(dev, irq, index, sub_handle);
+
+		if (ret < 0)
+			goto error;
+
+		ret = setup_msi_irq(dev, msidesc, irq);
+		if (ret < 0)
+			goto error;
+
+		sub_handle += 1;
+		irq        += 1;
+	}
+
+	return 0;
+
+error:
+	destroy_irq(irq);
+	return ret;
+}
+
 static void __init irq_remapping_modify_x86_ops(void)
 {
 	x86_io_apic_ops.disable		= irq_remapping_disable_io_apic;
+	x86_msi.setup_msi_irqs		= irq_remapping_setup_msi_irqs;
 	x86_msi.setup_hpet_msi		= setup_hpet_msi_remapped;
 }
 
@@ -186,7 +237,7 @@ void compose_remapped_msi_msg(struct pci_dev *pdev,
 	remap_ops->compose_msi_msg(pdev, irq, dest, msg, hpet_id);
 }
 
-int msi_alloc_remapped_irq(struct pci_dev *pdev, int irq, int nvec)
+static int msi_alloc_remapped_irq(struct pci_dev *pdev, int irq, int nvec)
 {
 	if (!remap_ops || !remap_ops->msi_alloc_irq)
 		return -ENODEV;
@@ -194,8 +245,8 @@ int msi_alloc_remapped_irq(struct pci_dev *pdev, int irq, int nvec)
 	return remap_ops->msi_alloc_irq(pdev, irq, nvec);
 }
 
-int msi_setup_remapped_irq(struct pci_dev *pdev, unsigned int irq,
-			   int index, int sub_handle)
+static int msi_setup_remapped_irq(struct pci_dev *pdev, unsigned int irq,
+				  int index, int sub_handle)
 {
 	if (!remap_ops || !remap_ops->msi_setup_irq)
 		return -ENODEV;
