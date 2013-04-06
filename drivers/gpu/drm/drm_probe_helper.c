@@ -514,7 +514,7 @@ bool drm_helper_hpd_irq_event(struct drm_device *dev)
 	enum drm_connector_status old_status;
 	bool changed = false;
 
-	if (!dev->mode_config.poll_enabled)
+	if (!dev->mode_config.poll_enabled || !drm_kms_helper_poll)
 		return false;
 
 	mutex_lock(&dev->mode_config.mutex);
