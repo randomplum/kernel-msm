@@ -38,6 +38,26 @@ struct dma_buf;
 struct dma_buf_attachment;
 
 /**
+ * enum dma_buf_cpu_access_type - specify the access type to flush caches for
+ *
+ * @USER_MMAP: Used to braket userspace cpu access through the memory access
+ * provided by mmapping the dma-buf fd. Exporters must be able to cope with
+ * unbalanced calls.
+ * @KERNEL_VMAP: Used to braket cpu access by the kernel through an already
+ * established vmap mapping. Callers must ensure that begin/end_cpu_access_for
+ * calls are symmetric.
+ * @KERNEL_VMAP: Used to braket cpu access by the kernel through the kmap
+ * interfaces. Callers must ensure that begin/end_cpu_access calls
+ * are symmetric. begin_cpu_access_for must be called before the first kmap
+ * call, end_cpu_access must be called after the last kunmap call.
+ */
+enum dma_buf_cpu_access_type {
+	USER_MMAP,
+	KERNEL_VMAP,
+	KERNEL_KMAP
+};
+
+/**
  * struct dma_buf_ops - operations possible on struct dma_buf
  * @attach: [optional] allows different devices to 'attach' themselves to the
  *	    given buffer. It might return -EBUSY to signal that backing storage
@@ -93,8 +113,14 @@ struct dma_buf_ops {
 	/* after final dma_buf_put() */
 	void (*release)(struct dma_buf *);
 
+	int (*begin_cpu_access_for)(struct dma_buf *, size_t, size_t,
+				    enum dma_data_direction,
+				    enum dma_buf_cpu_access_type);
 	int (*begin_cpu_access)(struct dma_buf *, size_t, size_t,
 				enum dma_data_direction);
+	void (*end_cpu_access_for)(struct dma_buf *, size_t, size_t,
+				   enum dma_data_direction,
+				   enum dma_buf_cpu_access_type);
 	void (*end_cpu_access)(struct dma_buf *, size_t, size_t,
 			       enum dma_data_direction);
 	void *(*kmap_atomic)(struct dma_buf *, unsigned long);
