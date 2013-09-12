@@ -339,6 +339,7 @@ void i915_gem_shrinker_init(struct drm_i915_private *dev_priv)
 	dev_priv->mm.shrinker.scan_objects = i915_gem_shrinker_scan;
 	dev_priv->mm.shrinker.count_objects = i915_gem_shrinker_count;
 	dev_priv->mm.shrinker.seeks = DEFAULT_SEEKS;
+	dev_priv->mm.shrinker.evicts_to_page_lru = true;
 	register_shrinker(&dev_priv->mm.shrinker);
 
 	dev_priv->mm.oom_notifier.notifier_call = i915_gem_shrinker_oom;

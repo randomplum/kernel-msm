@@ -316,6 +316,13 @@ static unsigned long do_shrink_slab(struct shrink_control *shrinkctl,
 		total_scan = min(total_scan, freeable / 2);
 
 	/*
+	 * For shrinkers that evict to the page lru make sure we have some
+	 * forward progress.
+	 */
+	if (shrinker->evicts_to_page_lru)
+		total_scan = max(total_scan, batch_size);
+
+	/*
 	 * Avoid risking looping forever due to too large nr value:
 	 * never try to free more than twice the estimate number of
 	 * freeable entries.

@@ -56,6 +56,20 @@ struct shrinker {
 	long batch;	/* reclaim batch size, 0 = default */
 	unsigned long flags;
 
+	/*
+	 * Some shrinkers (especially gpu drivers using gem as backing storage)
+	 * hold onto gobloads of pinned pagecache memory (from shmem nodes).
+	 * When those caches get shrunk the memory only gets unpin and so is
+	 * available to be evicted with the page launderer.
+	 *
+	 * The problem is that the core mm tries to balance eviction from the
+	 * page lru with shrinking caches. So if there's nothing on the page lru
+	 * to evict we'll never shrink the gpu driver caches and so will OOM
+	 * despite tons of memory used by gpu buffer objects that could be
+	 * swapped out. Setting this flag ensures forward progress.
+	 */
+	bool evicts_to_page_lru;
+
 	/* These are for internal use */
 	struct list_head list;
 	/* objs pending delete, per node */
