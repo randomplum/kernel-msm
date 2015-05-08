@@ -2309,9 +2309,10 @@ void intel_runtime_pm_enable(struct drm_i915_private *dev_priv)
 		return;
 	}
 
-	pm_runtime_set_autosuspend_delay(device, 10000); /* 10s */
+	pm_runtime_set_autosuspend_delay(device, 100);
 	pm_runtime_mark_last_busy(device);
 	pm_runtime_use_autosuspend(device);
+	pm_runtime_allow(device);
 
 	pm_runtime_put_autosuspend(device);
 }
