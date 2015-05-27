@@ -598,7 +598,7 @@ nouveau_display_resume(struct drm_device *dev, bool runtime)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
 	struct drm_crtc *crtc;
-	int ret, head;
+	int ret;
 
 	/* re-pin fb/cursors */
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
@@ -633,10 +633,6 @@ nouveau_display_resume(struct drm_device *dev, bool runtime)
 
 		nv_crtc->lut.depth = 0;
 	}
-
-	/* Make sure that drm and hw vblank irqs get resumed if needed. */
-	for (head = 0; head < dev->mode_config.num_crtc; head++)
-		drm_vblank_on(dev, head);
 
 	/* This should ensure we don't hit a locking problem when someone
 	 * wakes us up via a connector.  We should never go into suspend
