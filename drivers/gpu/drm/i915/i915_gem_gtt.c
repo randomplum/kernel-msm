@@ -146,7 +146,7 @@ static int sanitize_enable_ppgtt(struct drm_device *dev, int enable_ppgtt)
 		return 0;
 	}
 
-	if (INTEL_INFO(dev)->gen >= 8 && i915.enable_execlists)
+	if (INTEL_INFO(dev)->gen >= 8)
 		return has_full_48bit_ppgtt ? 3 : 2;
 	else
 		return has_aliasing_ppgtt ? 1 : 0;
