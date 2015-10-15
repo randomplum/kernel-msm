@@ -2156,6 +2156,7 @@ void radeon_master_destroy(struct drm_device *dev, struct drm_master *master)
 	if (!master_priv)
 		return;
 
+	mutex_lock(&dev->struct_mutex);
 	if (master_priv->sarea_priv &&
 	    master_priv->sarea_priv->pfCurrentPage != 0)
 		radeon_cp_dispatch_flip(dev, master);
@@ -2167,6 +2168,7 @@ void radeon_master_destroy(struct drm_device *dev, struct drm_master *master)
 	kfree(master_priv);
 
 	master->driver_priv = NULL;
+	mutex_unlock(&dev->struct_mutex);
 }
 
 /* Create mappings for registers and framebuffer so userland doesn't necessarily
