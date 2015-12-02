@@ -1265,6 +1265,15 @@ int drm_atomic_check_only(struct drm_atomic_state *state)
 	if (config->funcs->atomic_check)
 		ret = config->funcs->atomic_check(state->dev, state);
 
+	/*
+	 * Reject event generation for when a CRTC is off and stays off. It
+	 * wouldn't be hard to implement this, but userspace has a track record
+	 * of happily burning through 100% cpu (or worse, crash) when the
+	 * display pipe is suspended. To avoid all that fun just reject updates
+	 * that ask for events since likely that indicates a bug in the
+	 * compositors drawing loop. This is consistent with the vblank ioctl
+	 * which also rejects service on a disabled pipe.
+	 */
 	if (!state->allow_modeset) {
 		for_each_crtc_in_state(state, crtc, crtc_state, i) {
 			if (drm_atomic_crtc_needs_modeset(crtc_state)) {
