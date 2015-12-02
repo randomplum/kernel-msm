@@ -162,23 +162,60 @@ struct drm_tile_group {
 	u8 group_data[8];
 };
 
+/**
+ * struct drm_framebuffer_funcs - framebuffer hooks
+ */
 struct drm_framebuffer_funcs {
-	/* note: use drm_framebuffer_remove() */
+	/**
+	 * @destroy:
+	 *
+	 * Clean up framebuffer resources, specifically also unreference the
+	 * backing storage. The core guarantees to call this function for every
+	 * framebuffer succesfully created by fb_create in
+	 * &drm_mode_config_funcs. Drivers also must call
+	 * drm_framebuffer_cleanup() to release DRM core resources for this
+	 * framebuffer.
+	 */
 	void (*destroy)(struct drm_framebuffer *framebuffer);
+
+	/**
+	 * @create_handle:
+	 *
+	 * Create a buffer handle in the driver-specific buffer manager (either
+	 * GEM or TTM) valid for the passed-in struct &drm_file. This is used by
+	 * the core to implement the GETFB ioctl, which returns (for
+	 * sufficiently priviledged user) also a native buffer handle. This can
+	 * be used for seamless transitions between modesetting clients by
+	 * copying the current screen contents to a private buffer and blending
+	 * between that and the new contents.
+	 *
+	 * GEM based drivers should call drm_gem_handle_create() to create the
+	 * handle.
+	 *
+	 * RETURNS:
+	 *
+	 * 0 on success or a negative error code on failure.
+	 */
 	int (*create_handle)(struct drm_framebuffer *fb,
 			     struct drm_file *file_priv,
 			     unsigned int *handle);
-	/*
+	/**
+	 * @dirty:
+	 *
 	 * Optional callback for the dirty fb ioctl.
 	 *
-	 * Userspace can notify the driver via this callback
-	 * that a area of the framebuffer has changed and should
-	 * be flushed to the display hardware.
+	 * Userspace can notify the driver via this callback that an area of the
+	 * framebuffer has changed and should be flushed to the display
+	 * hardware. This can also be used internally, e.g. by the fbdev
+	 * emulation, though that's not (yet) the case currently.
 	 *
-	 * See documentation in drm_mode.h for the struct
-	 * drm_mode_fb_dirty_cmd for more information as all
-	 * the semantics and arguments have a one to one mapping
-	 * on this function.
+	 * See documentation in drm_mode.h for the struct &drm_mode_fb_dirty_cmd
+	 * for more information as all the semantics and arguments have a one to
+	 * one mapping on this function.
+	 *
+	 * RETURNS:
+	 *
+	 * 0 on success or a negative error code on failure.
 	 */
 	int (*dirty)(struct drm_framebuffer *framebuffer,
 		     struct drm_file *file_priv, unsigned flags,
