@@ -52,8 +52,9 @@
 			no-map;
 		};
 
-		adsp_region: adsp@8ea00000 {
-			reg = <0x0 0x8ea00000 0x0 0x1a00000>;
+		peripheral_reserved: peripheral_region@8ea00000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0x8ea00000 0 0x2b00000>;
 			no-map;
 		};
 
@@ -276,6 +277,12 @@
 		compatible = "qcom,smem";
 		memory-region = <&smem_mem>;
 		hwlocks = <&tcsr_mutex 3>;
+	};
+
+	firmware {
+		scm {
+			compatible = "qcom,scm-msm8996";
+		};
 	};
 
 	soc: soc {
