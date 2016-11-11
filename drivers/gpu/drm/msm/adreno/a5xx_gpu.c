@@ -729,7 +729,14 @@ static int a5xx_hw_init(struct msm_gpu *gpu)
 
 static void a5xx_recover(struct msm_gpu *gpu)
 {
+	int i;
+
 	adreno_dump_info(gpu);
+
+	for (i = 0; i < 8; i++) {
+		printk("CP_SCRATCH_REG%d: %u\n", i,
+			gpu_read(gpu, REG_A5XX_CP_SCRATCH_REG(i)));
+	}
 
 	if (hang_debug)
 		a5xx_dump(gpu);
