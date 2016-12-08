@@ -715,8 +715,12 @@ static irqreturn_t arm_smmu_context_fault(int irq, void *dev)
 	writel(fsr, cb_base + ARM_SMMU_CB_FSR);
 
 	/* Retry or terminate any stalled transactions */
+#if 0
 	if (fsr & FSR_SS)
 		writel_relaxed(resume, cb_base + ARM_SMMU_CB_RESUME);
+#else
+	writel_relaxed(RESUME_TERMINATE, cb_base + ARM_SMMU_CB_RESUME);
+#endif
 
 	return ret;
 }
