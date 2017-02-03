@@ -232,6 +232,8 @@ extern bool iommu_capable(struct bus_type *bus, enum iommu_cap cap);
 extern struct iommu_domain *iommu_domain_alloc(struct bus_type *bus);
 extern struct iommu_group *iommu_group_get_by_id(int id);
 extern void iommu_domain_free(struct iommu_domain *domain);
+extern const struct iommu_ops *iommu_add_device(struct device *dev,
+						const struct iommu_ops *ops);
 extern int iommu_attach_device(struct iommu_domain *domain,
 			       struct device *dev);
 extern void iommu_detach_device(struct iommu_domain *domain,
@@ -403,6 +405,12 @@ static inline struct iommu_group *iommu_group_get_by_id(int id)
 
 static inline void iommu_domain_free(struct iommu_domain *domain)
 {
+}
+
+static inline const struct iommu_ops *iommu_add_device(struct device *dev,
+					      const struct iommu_ops *ops)
+{
+	return NULL;
 }
 
 static inline int iommu_attach_device(struct iommu_domain *domain,

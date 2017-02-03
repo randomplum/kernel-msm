@@ -1015,41 +1015,6 @@ struct iommu_domain *iommu_group_default_domain(struct iommu_group *group)
 	return group->default_domain;
 }
 
-static int add_iommu_group(struct device *dev, void *data)
-{
-	struct iommu_callback_data *cb = data;
-	const struct iommu_ops *ops = cb->ops;
-	int ret;
-
-	if (!ops->add_device)
-		return 0;
-
-	WARN_ON(dev->iommu_group);
-
-	ret = ops->add_device(dev);
-
-	/*
-	 * We ignore -ENODEV errors for now, as they just mean that the
-	 * device is not translated by an IOMMU. We still care about
-	 * other errors and fail to initialize when they happen.
-	 */
-	if (ret == -ENODEV)
-		ret = 0;
-
-	return ret;
-}
-
-static int remove_iommu_group(struct device *dev, void *data)
-{
-	struct iommu_callback_data *cb = data;
-	const struct iommu_ops *ops = cb->ops;
-
-	if (ops->remove_device && dev->iommu_group)
-		ops->remove_device(dev);
-
-	return 0;
-}
-
 static int iommu_bus_notifier(struct notifier_block *nb,
 			      unsigned long action, void *data)
 {
@@ -1059,13 +1024,10 @@ static int iommu_bus_notifier(struct notifier_block *nb,
 	unsigned long group_action = 0;
 
 	/*
-	 * ADD/DEL call into iommu driver ops if provided, which may
+	 * DEL call into iommu driver ops if provided, which may
 	 * result in ADD/DEL notifiers to group->notifier
 	 */
-	if (action == BUS_NOTIFY_ADD_DEVICE) {
-		if (ops->add_device)
-			return ops->add_device(dev);
-	} else if (action == BUS_NOTIFY_REMOVED_DEVICE) {
+	if (action == BUS_NOTIFY_REMOVED_DEVICE) {
 		if (ops->remove_device && dev->iommu_group) {
 			ops->remove_device(dev);
 			return 0;
@@ -1107,9 +1069,6 @@ static int iommu_bus_init(struct bus_type *bus, const struct iommu_ops *ops)
 {
 	int err;
 	struct notifier_block *nb;
-	struct iommu_callback_data cb = {
-		.ops = ops,
-	};
 
 	nb = kzalloc(sizeof(struct notifier_block), GFP_KERNEL);
 	if (!nb)
@@ -1121,17 +1080,7 @@ static int iommu_bus_init(struct bus_type *bus, const struct iommu_ops *ops)
 	if (err)
 		goto out_free;
 
-	err = bus_for_each_dev(bus, NULL, &cb, add_iommu_group);
-	if (err)
-		goto out_err;
-
-
 	return 0;
-
-out_err:
-	/* Clean up */
-	bus_for_each_dev(bus, NULL, &cb, remove_iommu_group);
-	bus_unregister_notifier(bus, nb);
 
 out_free:
 	kfree(nb);
@@ -1252,6 +1201,21 @@ static int __iommu_attach_device(struct iommu_domain *domain,
 		trace_attach_device_to_domain(dev);
 	return ret;
 }
+
+const struct iommu_ops *iommu_add_device(struct device *dev,
+					 const struct iommu_ops *ops)
+{
+	if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
+	    dev->bus && !dev->iommu_group) {
+		int err = ops->add_device(dev);
+
+		if (err)
+			ops = ERR_PTR(err);
+	}
+
+	return ops;
+}
+EXPORT_SYMBOL_GPL(iommu_add_device);
 
 int iommu_attach_device(struct iommu_domain *domain, struct device *dev)
 {
