@@ -642,17 +642,7 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
 		}
 	}
 
-	/*
-	 * If we have reason to believe the IOMMU driver missed the initial
-	 * add_device callback for dev, replay it to get things in order.
-	 */
-	if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
-	    dev->bus && !dev->iommu_group) {
-		int err = ops->add_device(dev);
-
-		if (err)
-			ops = ERR_PTR(err);
-	}
+	ops = iommu_add_device(dev, ops);
 
 	return ops;
 }
