@@ -224,17 +224,8 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
 		ops = of_pci_iommu_init(to_pci_dev(dev), master_np);
 	else
 		ops = of_platform_iommu_init(dev, master_np);
-	/*
-	 * If we have reason to believe the IOMMU driver missed the initial
-	 * add_device callback for dev, replay it to get things in order.
-	 */
-	if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
-	    dev->bus && !dev->iommu_group) {
-		int err = ops->add_device(dev);
 
-		if (err)
-			ops = ERR_PTR(err);
-	}
+	ops = iommu_add_device(dev, ops);
 
 	return ops;
 }
