@@ -698,6 +698,33 @@
 			#thermal-sensor-cells = <1>;
 		};
 
+		gpu_iommu_user: iommu-context-bank@1f09000 {
+			compatible = "qcom,msm8916-iommu-context-bank";
+			reg = <0x1f09000 0x1000>;
+			interrupts = <GIC_SPI 241 0>;
+			qcom,iommu-ctx-asid = <1>;
+			qcom,iommu-secure-id = <18>;
+			#iommu-cells = <0>;
+			clocks = <&gcc GCC_SMMU_CFG_CLK>,
+				 <&gcc GCC_GFX_TCU_CLK>;
+			clock-names = "iface_clk", "bus_clk";
+			status = "okay";
+		};
+
+		gpu_iommu_priv: iommu-context-bank@1f0a000 {
+			compatible = "qcom,msm8916-iommu-context-bank";
+			reg = <0x1f0a000 0x1000>;
+			reg-names = "iommu_base";
+			interrupts = <GIC_SPI 242 0>;
+			qcom,iommu-ctx-asid = <2>;
+			qcom,iommu-secure-id = <18>;
+			#iommu-cells = <0>;
+			clocks = <&gcc GCC_SMMU_CFG_CLK>,
+				 <&gcc GCC_GFX_TCU_CLK>;
+			clock-names = "iface_clk", "bus_clk";
+			status = "okay";
+		};
+
 		gpu@01c00000 {
 			compatible = "qcom,adreno-306.0", "qcom,adreno";
 			#stream-id-cells = <16>;
@@ -720,6 +747,7 @@
 			    <&gcc GCC_BIMC_GPU_CLK>,
 			    <&gcc GFX3D_CLK_SRC>;
 			power-domains = <&gcc OXILI_GDSC>;
+			iommus = <&gpu_iommu_user>, <&gpu_iommu_priv>;
 			qcom,gpu-pwrlevels {
 				compatible = "qcom,gpu-pwrlevels";
 				qcom,gpu-pwrlevel@0 {
@@ -729,6 +757,21 @@
 					qcom,gpu-freq = <19200000>;
 				};
 			};
+		};
+
+		mdp_iommu: iommu-context-bank@1e24000 {
+			compatible = "qcom,msm8916-iommu-context-bank";
+			reg = <0x1e24000 0x1000
+				0x1ef0000 0x3000>;
+			reg-names = "iommu_base", "smmu_local_base";
+			interrupts = <GIC_SPI 70 0>;
+			qcom,iommu-ctx-asid = <4>;
+			qcom,iommu-secure-id = <17>;
+			#iommu-cells = <0>;
+			clocks = <&gcc GCC_SMMU_CFG_CLK>,
+				 <&gcc GCC_APSS_TCU_CLK>;
+			clock-names = "iface_clk", "bus_clk";
+			status = "okay";
 		};
 
 		mdss: mdss@1a00000 {
@@ -771,6 +814,8 @@
 					      "bus_clk",
 					      "core_clk",
 					      "vsync_clk";
+
+				iommus = <&mdp_iommu>;
 
 				ports {
 					#address-cells = <1>;
@@ -847,7 +892,6 @@
 				clock-names = "iface_clk";
 			};
 		};
-
 
 		hexagon@4080000 {
 			compatible = "qcom,q6v5-pil";
