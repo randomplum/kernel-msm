@@ -1049,14 +1049,13 @@ static int arm_smmu_init_domain_context(struct iommu_domain *domain,
 			ret = qcom_smmu_sec_program_iommu(smmu, smmu_domain);
 			if (ret)
 				goto out_unlock;
-
-			arm_smmu_init_context_bank_ctx(smmu_domain, &pgtbl_cfg);
 		}
 	} else {
 		/* Initialise the context bank with our page table cfg */
 		arm_smmu_init_context_bank_global(smmu_domain, &pgtbl_cfg);
-		arm_smmu_init_context_bank_ctx(smmu_domain, &pgtbl_cfg);
 	}
+
+	arm_smmu_init_context_bank_ctx(smmu_domain, &pgtbl_cfg);
 
 	/*
 	 * Request context fault interrupt. Do this last to avoid the
@@ -1860,9 +1859,7 @@ static int qcom_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
 	// *shrug*?
 	smmu->streamid_mask = ~0;
 	smmu->smr_mask_mask = ~0;
-	smmu->features = ARM_SMMU_FEAT_TRANS_S1 |
-		ARM_SMMU_FEAT_FMT_AARCH64_4K |
-		ARM_SMMU_FEAT_FMT_AARCH64_64K;
+	smmu->features = ARM_SMMU_FEAT_TRANS_S1 | ARM_SMMU_FEAT_FMT_AARCH32_L;
 
 	/* TODO we might need to be able to use this on some 32b devices? */
 	smmu->va_size  = 48;
