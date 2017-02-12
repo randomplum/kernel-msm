@@ -416,13 +416,6 @@ int adreno_gpu_init(struct drm_device *drm, struct platform_device *pdev,
 		return ret;
 	}
 
-	/* HACK: since we enable runtime-pm, that means the gdsc is also
-	 * enabled/disabled, forcing more frequent hw_init() (ie. every
-	 * time we resume).  But this doesn't seem reliable.  So just
-	 * force things to stay enabled.
-	 */
-	pm_runtime_get_sync(&pdev->dev);
-
 	return 0;
 }
 
