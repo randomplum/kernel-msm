@@ -94,19 +94,19 @@ static int enable_clk(struct msm_gpu *gpu)
 	int i;
 
 	if (gpu->grp_clks[0] && gpu->fast_rate)
-		clk_set_rate(gpu->grp_clks[0], gpu->fast_rate);
+		WARN_ON(clk_set_rate(gpu->grp_clks[0], gpu->fast_rate));
 
 	/* Set the RBBM timer rate to 19.2Mhz */
 	if (gpu->grp_clks[2])
-		clk_set_rate(gpu->grp_clks[2], 19200000);
+		WARN_ON(clk_set_rate(gpu->grp_clks[2], 19200000));
 
 	for (i = ARRAY_SIZE(gpu->grp_clks) - 1; i >= 0; i--)
 		if (gpu->grp_clks[i])
-			clk_prepare(gpu->grp_clks[i]);
+			WARN_ON(clk_prepare(gpu->grp_clks[i]));
 
 	for (i = ARRAY_SIZE(gpu->grp_clks) - 1; i >= 0; i--)
 		if (gpu->grp_clks[i])
-			clk_enable(gpu->grp_clks[i]);
+			WARN_ON(clk_enable(gpu->grp_clks[i]));
 
 	return 0;
 }
@@ -124,10 +124,10 @@ static int disable_clk(struct msm_gpu *gpu)
 			clk_unprepare(gpu->grp_clks[i]);
 
 	if (gpu->grp_clks[0] && gpu->slow_rate)
-		clk_set_rate(gpu->grp_clks[0], gpu->slow_rate);
+		WARN_ON(clk_set_rate(gpu->grp_clks[0], gpu->slow_rate));
 
 	if (gpu->grp_clks[2])
-		clk_set_rate(gpu->grp_clks[2], 0);
+		WARN_ON(clk_set_rate(gpu->grp_clks[2], 0));
 
 	return 0;
 }
@@ -154,18 +154,19 @@ int msm_gpu_pm_resume(struct msm_gpu *gpu)
 {
 	int ret;
 
+C("resume");
 	DBG("%s", gpu->name);
 
 	ret = enable_pwrrail(gpu);
-	if (ret)
+	if (WARN_ON(ret))
 		return ret;
 
 	ret = enable_clk(gpu);
-	if (ret)
+	if (WARN_ON(ret))
 		return ret;
 
 	ret = enable_axi(gpu);
-	if (ret)
+	if (WARN_ON(ret))
 		return ret;
 
 	gpu->needs_hw_init = true;
@@ -177,18 +178,20 @@ int msm_gpu_pm_suspend(struct msm_gpu *gpu)
 {
 	int ret;
 
+C("suspend, active=%d", msm_gpu_active(gpu));
+
 	DBG("%s", gpu->name);
 
 	ret = disable_axi(gpu);
-	if (ret)
+	if (WARN_ON(ret))
 		return ret;
 
 	ret = disable_clk(gpu);
-	if (ret)
+	if (WARN_ON(ret))
 		return ret;
 
 	ret = disable_pwrrail(gpu);
-	if (ret)
+	if (WARN_ON(ret))
 		return ret;
 
 	return 0;
@@ -197,12 +200,15 @@ int msm_gpu_pm_suspend(struct msm_gpu *gpu)
 int msm_gpu_hw_init(struct msm_gpu *gpu)
 {
 	int ret;
+ktime_t t;
 
 	if (!gpu->needs_hw_init)
 		return 0;
 
 	disable_irq(gpu->irq);
+t = ktime_get();
 	ret = gpu->funcs->hw_init(gpu);
+printk("#### %s:%d: %uns\n", __func__, __LINE__, (unsigned)ktime_to_ns(ktime_sub(ktime_get(), t)));
 	if (!ret)
 		gpu->needs_hw_init = false;
 	enable_irq(gpu->irq);
@@ -410,6 +416,7 @@ static void retire_submit(struct msm_gpu *gpu, struct msm_gem_submit *submit)
 		drm_gem_object_unreference(&msm_obj->base);
 	}
 
+C("retire");
 	pm_runtime_put_autosuspend(&gpu->pdev->dev);
 	msm_gem_submit_free(submit);
 }
@@ -465,7 +472,9 @@ void msm_gpu_submit(struct msm_gpu *gpu, struct msm_gem_submit *submit,
 
 	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
 
+C(">> submit: %p", submit);
 	pm_runtime_get_sync(&gpu->pdev->dev);
+C("<< submit: %p", submit);
 
 	msm_gpu_hw_init(gpu);
 
@@ -512,7 +521,7 @@ static irqreturn_t irq_handler(int irq, void *data)
 }
 
 static const char *clk_names[] = {
-	"core", "iface", "rbbmtimer", "mem", "mem_iface", "alt_mem_iface",
+	"core", "iface", "rbbmtimer", "mem", "mem_iface", "alt_mem_iface", "foo",
 };
 
 int msm_gpu_init(struct drm_device *drm, struct platform_device *pdev,

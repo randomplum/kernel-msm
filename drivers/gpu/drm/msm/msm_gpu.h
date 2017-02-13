@@ -103,7 +103,7 @@ struct msm_gpu {
 
 	/* Power Control: */
 	struct regulator *gpu_reg, *gpu_cx;
-	struct clk *ebi1_clk, *grp_clks[6];
+	struct clk *ebi1_clk, *grp_clks[7];
 	uint32_t fast_rate, slow_rate, bus_freq;
 
 #ifdef DOWNSTREAM_CONFIG_MSM_BUS_SCALING
@@ -213,5 +213,11 @@ void msm_gpu_cleanup(struct msm_gpu *gpu);
 struct msm_gpu *adreno_load_gpu(struct drm_device *dev);
 void __init adreno_register(void);
 void __exit adreno_unregister(void);
+
+#if 1
+#define C(n, ...) do { static unsigned __cnt; printk("%u: "n"\n", ++__cnt, ##__VA_ARGS__); } while (0)
+#else
+#define C(n, ...) do { } while (0)
+#endif
 
 #endif /* __MSM_GPU_H__ */

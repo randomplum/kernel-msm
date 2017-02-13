@@ -211,11 +211,16 @@ static int _genpd_power_on(struct generic_pm_domain *genpd, bool timed)
 	if (!genpd->power_on)
 		return 0;
 
-	if (!timed)
-		return genpd->power_on(genpd);
+printk("#### %s:%d: enable: %s %pF\n", __func__, __LINE__, genpd->name, genpd->power_on);
+	if (!timed) {
+		int ret = genpd->power_on(genpd);
+printk("1: ret -> %d\n", ret);
+		return ret;
+	}
 
 	time_start = ktime_get();
 	ret = genpd->power_on(genpd);
+printk("2: ret -> %d\n", ret);
 	if (ret)
 		return ret;
 
@@ -241,11 +246,17 @@ static int _genpd_power_off(struct generic_pm_domain *genpd, bool timed)
 	if (!genpd->power_off)
 		return 0;
 
-	if (!timed)
-		return genpd->power_off(genpd);
+printk("#### %s:%d: disable: %s %pF\n", __func__, __LINE__, genpd->name, genpd->power_off);
+
+	if (!timed) {
+		int ret = genpd->power_off(genpd);
+printk("1: ret -> %d\n", ret);
+		return ret;
+	}
 
 	time_start = ktime_get();
 	ret = genpd->power_off(genpd);
+printk("2: ret -> %d\n", ret);
 	if (ret == -EBUSY)
 		return ret;
 

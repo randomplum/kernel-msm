@@ -1,3 +1,4 @@
+#define DEBUG 1
 #include <linux/string.h>
 #include <linux/kernel.h>
 #include <linux/of.h>

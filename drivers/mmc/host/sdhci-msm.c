@@ -1337,7 +1337,9 @@ static int sdhci_msm_runtime_suspend(struct device *dev)
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_msm_host *msm_host = sdhci_pltfm_priv(pltfm_host);
 
+printk("#### %s:%d: disable clk\n", __func__, __LINE__);
 	clk_disable_unprepare(msm_host->clk);
+printk("#### %s:%d: disable pclk\n", __func__, __LINE__);
 	clk_disable_unprepare(msm_host->pclk);
 
 	return 0;
@@ -1350,11 +1352,13 @@ static int sdhci_msm_runtime_resume(struct device *dev)
 	struct sdhci_msm_host *msm_host = sdhci_pltfm_priv(pltfm_host);
 	int ret;
 
+printk("#### %s:%d: enable clk\n", __func__, __LINE__);
 	ret = clk_prepare_enable(msm_host->clk);
 	if (ret) {
 		dev_err(dev, "clk_enable failed for core_clk: %d\n", ret);
 		return ret;
 	}
+printk("#### %s:%d: enable pclk\n", __func__, __LINE__);
 	ret = clk_prepare_enable(msm_host->pclk);
 	if (ret) {
 		dev_err(dev, "clk_enable failed for iface_clk: %d\n", ret);

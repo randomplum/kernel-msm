@@ -59,8 +59,10 @@ int adreno_hw_init(struct msm_gpu *gpu)
 	struct adreno_gpu *adreno_gpu = to_adreno_gpu(gpu);
 	int ret;
 
+C("hw init");
 	DBG("%s", gpu->name);
 
+	// XXX this happens on recover.. we probably have unbalanced get/put!
 	ret = msm_gem_get_iova(gpu->rb->bo, gpu->id, &gpu->rb_iova);
 	if (ret) {
 		gpu->rb_iova = 0;
@@ -114,6 +116,9 @@ static uint32_t get_rptr(struct adreno_gpu *adreno_gpu)
 uint32_t adreno_last_fence(struct msm_gpu *gpu)
 {
 	struct adreno_gpu *adreno_gpu = to_adreno_gpu(gpu);
+	// XXX just for debug in msm_gpu_pm_suspend():
+	if (!adreno_gpu->memptrs)
+		return 0;
 	return adreno_gpu->memptrs->fence;
 }
 

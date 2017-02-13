@@ -38,7 +38,11 @@ static int msm_iommu_attach(struct msm_mmu *mmu, const char * const *names,
 			    int cnt)
 {
 	struct msm_iommu *iommu = to_msm_iommu(mmu);
-	return iommu_attach_device(iommu->domain, mmu->dev);
+	int ret;
+printk(KERN_ERR"%s:%d: >>>>>>", __func__, __LINE__);
+	ret = iommu_attach_device(iommu->domain, mmu->dev);
+printk(KERN_ERR"%s:%d: <<<<<<", __func__, __LINE__);
+	return ret;
 }
 
 static void msm_iommu_detach(struct msm_mmu *mmu, const char * const *names,

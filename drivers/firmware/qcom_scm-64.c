@@ -395,5 +395,18 @@ int __qcom_scm_restore_sec_cfg(struct device *dev, u32 device_id, u32 spare)
 	ret = qcom_scm_call(dev, QCOM_SCM_SVC_MP, QCOM_SCM_RESTORE_SEC_CFG,
 			    &desc, &res);
 
+	{
+	static bool first = true;
+	if (first) {
+		struct qcom_scm_desc desc = {0};
+		desc.args[0] = 1;
+		desc.arginfo = QCOM_SCM_ARGS(1);
+#define SCM_SVC_SEC_WDOG_DIS    0x7
+		ret = qcom_scm_call(dev, QCOM_SCM_SVC_BOOT, SCM_SVC_SEC_WDOG_DIS, &desc, &res);
+
+		first = false;
+	}
+	}
+
 	return ret ? : res.a1;
 }

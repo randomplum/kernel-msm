@@ -44,14 +44,17 @@ struct io_pgtable_ops *alloc_io_pgtable_ops(enum io_pgtable_fmt fmt,
 	struct io_pgtable *iop;
 	const struct io_pgtable_init_fns *fns;
 
+printk(KERN_ERR"#### %s:%d, fmt=%d\n", __func__, __LINE__, fmt);
 	if (fmt >= IO_PGTABLE_NUM_FMTS)
 		return NULL;
 
 	fns = io_pgtable_init_table[fmt];
+printk(KERN_ERR"#### %s:%d, fns=%pF\n", __func__, __LINE__, fns);
 	if (!fns)
 		return NULL;
 
 	iop = fns->alloc(cfg, cookie);
+printk(KERN_ERR"#### %s:%d, iop=%pF\n", __func__, __LINE__, iop);
 	if (!iop)
 		return NULL;
 

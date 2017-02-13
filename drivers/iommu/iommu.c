@@ -1310,7 +1310,7 @@ EXPORT_SYMBOL_GPL(iommu_get_domain_for_dev);
 static int iommu_group_do_attach_device(struct device *dev, void *data)
 {
 	struct iommu_domain *domain = data;
-
+printk(KERN_ERR"#### attach %p to %s\n", domain, dev_name(dev));
 	return __iommu_attach_device(domain, dev);
 }
 
@@ -1836,10 +1836,12 @@ int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids)
 	size_t size;
 	int i;
 
+dev_err(dev, "#### fwspec=%p\n", fwspec);
 	if (!fwspec)
 		return -EINVAL;
 
 	size = offsetof(struct iommu_fwspec, ids[fwspec->num_ids + num_ids]);
+dev_err(dev, "#### size=%d\n", (int)size);
 	if (size > sizeof(*fwspec)) {
 		fwspec = krealloc(dev->iommu_fwspec, size, GFP_KERNEL);
 		if (!fwspec)
@@ -1851,6 +1853,7 @@ int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids)
 
 	fwspec->num_ids += num_ids;
 	dev->iommu_fwspec = fwspec;
+dev_err(dev, "#### ok\n");
 	return 0;
 }
 EXPORT_SYMBOL_GPL(iommu_fwspec_add_ids);

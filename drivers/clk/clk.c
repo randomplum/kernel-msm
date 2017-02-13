@@ -602,8 +602,10 @@ static void clk_core_disable(struct clk_core *core)
 
 	trace_clk_disable_rcuidle(core);
 
+printk("#### %s:%d: disable: %s %pF\n", __func__, __LINE__, core->name, core->ops->disable);
 	if (core->ops->disable)
 		core->ops->disable(core->hw);
+printk("#### %s:%d: disable: %s\n", __func__, __LINE__, core->name);
 
 	trace_clk_disable_complete_rcuidle(core);
 
@@ -660,8 +662,10 @@ static int clk_core_enable(struct clk_core *core)
 
 		trace_clk_enable_rcuidle(core);
 
+printk("#### %s:%d: enable: %s %pF\n", __func__, __LINE__, core->name, core->ops->enable);
 		if (core->ops->enable)
 			ret = core->ops->enable(core->hw);
+//WARN_ON(!core->ops->enable);
 
 		trace_clk_enable_complete_rcuidle(core);
 

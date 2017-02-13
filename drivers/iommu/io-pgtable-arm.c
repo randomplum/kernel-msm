@@ -693,6 +693,7 @@ arm_64_lpae_alloc_pgtable_s1(struct io_pgtable_cfg *cfg, void *cookie)
 		break;
 	}
 
+printk(KERN_ERR"#### %s:%d, oas=%d\n", __func__, __LINE__, cfg->oas);
 	switch (cfg->oas) {
 	case 32:
 		reg |= (ARM_LPAE_TCR_PS_32_BIT << ARM_LPAE_TCR_IPS_SHIFT);
