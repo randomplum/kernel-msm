@@ -1,0 +1,45 @@
+* QCOM IOMMU Implementation
+
+Qualcomm "B" family devices which are not compatible with arm-smmu have
+a similar looking IOMMU but without access to the global register space.
+This is modelled as separate IOMMU devices which have just a single
+master.
+
+** Required properties:
+
+- compatible    : Should be one of:
+
+                        "qcom,msm8916-iommu-context-bank"
+
+                  depending on the particular implementation and/or the
+                  version of the architecture implemented.
+
+- reg           : Base address and size of the SMMU.  And optionally,
+                  if present, the "smmu_local_base"
+
+- interrupts    : The context fault irq.
+
+- #iommu-cells  : Must be 0
+
+- qcom,iommu-ctx-asid   : context ASID
+
+- qcom,iommu-secure-id  : secure-id
+
+- clocks        : The interface clock (iface_clk) and bus clock (bus_clk)
+
+** Examples:
+
+	mdp_iommu: iommu-context-bank@1e24000 {
+		compatible = "qcom,msm8916-iommu-context-bank";
+		reg = <0x1e24000 0x1000
+			0x1ef0000 0x3000>;
+		reg-names = "iommu_base", "smmu_local_base";
+		interrupts = <GIC_SPI 70 0>;
+		qcom,iommu-ctx-asid = <4>;
+		qcom,iommu-secure-id = <17>;
+		#iommu-cells = <0>;
+		clocks = <&gcc GCC_SMMU_CFG_CLK>,
+			 <&gcc GCC_APSS_TCU_CLK>;
+		clock-names = "iface_clk", "bus_clk";
+		status = "okay";
+	};
