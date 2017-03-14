@@ -355,6 +355,8 @@ void msm_gpu_perfcntr_start(struct msm_gpu *gpu)
 {
 	unsigned long flags;
 
+	pm_runtime_get_sync(&gpu->pdev->dev);
+
 	spin_lock_irqsave(&gpu->perf_lock, flags);
 	/* we could dynamically enable/disable perfcntr registers too.. */
 	gpu->last_sample.active = msm_gpu_active(gpu);
@@ -368,6 +370,7 @@ void msm_gpu_perfcntr_start(struct msm_gpu *gpu)
 void msm_gpu_perfcntr_stop(struct msm_gpu *gpu)
 {
 	gpu->perfcntr_active = false;
+	pm_runtime_put_sync(&gpu->pdev->dev);
 }
 
 /* returns -errno or # of cntrs sampled */
@@ -413,6 +416,7 @@ static void retire_submit(struct msm_gpu *gpu, struct msm_gem_submit *submit)
 		drm_gem_object_unreference(&msm_obj->base);
 	}
 
+	pm_runtime_mark_last_busy(&gpu->pdev->dev);
 	pm_runtime_put_autosuspend(&gpu->pdev->dev);
 	msm_gem_submit_free(submit);
 }
