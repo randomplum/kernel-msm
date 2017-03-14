@@ -3621,18 +3621,19 @@ int __sdhci_add_host(struct sdhci_host *host)
 	sdhci_dumpregs(host);
 #endif
 
-	ret = sdhci_led_register(host);
-	if (ret) {
-		pr_err("%s: Failed to register LED device: %d\n",
-		       mmc_hostname(mmc), ret);
-		goto unirq;
-	}
-
 	mmiowb();
 
 	ret = mmc_add_host(mmc);
 	if (ret)
-		goto unled;
+		goto unirq;
+
+	ret = sdhci_led_register(host);
+	if (ret) {
+		if (ret != -EPROBE_DEFER)
+			pr_err("%s: Failed to register LED device: %d\n",
+			       mmc_hostname(mmc), ret);
+		goto unhost;
+	}
 
 	pr_info("%s: SDHCI controller on %s [%s] using %s\n",
 		mmc_hostname(mmc), host->hw_name, dev_name(mmc_dev(mmc)),
@@ -3644,8 +3645,8 @@ int __sdhci_add_host(struct sdhci_host *host)
 
 	return 0;
 
-unled:
-	sdhci_led_unregister(host);
+unhost:
+	mmc_remove_host(mmc);
 unirq:
 	sdhci_do_reset(host, SDHCI_RESET_ALL);
 	sdhci_writel(host, 0, SDHCI_INT_ENABLE);
@@ -3701,9 +3702,9 @@ void sdhci_remove_host(struct sdhci_host *host, int dead)
 
 	sdhci_disable_card_detection(host);
 
-	mmc_remove_host(mmc);
-
 	sdhci_led_unregister(host);
+
+	mmc_remove_host(mmc);
 
 	if (!dead)
 		sdhci_do_reset(host, SDHCI_RESET_ALL);
