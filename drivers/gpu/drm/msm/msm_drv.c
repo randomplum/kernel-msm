@@ -540,6 +540,13 @@ static int msm_open(struct drm_device *dev, struct drm_file *file)
 	return 0;
 }
 
+static void msm_preclose(struct drm_device *dev, struct drm_file *file)
+{
+	struct msm_drm_private *priv = dev->dev_private;
+
+	flush_workqueue(priv->atomic_wq);
+}
+
 static void msm_postclose(struct drm_device *dev, struct drm_file *file)
 {
 	struct msm_drm_private *priv = dev->dev_private;
@@ -813,7 +820,8 @@ static struct drm_driver msm_driver = {
 				DRIVER_ATOMIC |
 				DRIVER_MODESET,
 	.open               = msm_open,
-	.postclose           = msm_postclose,
+	.preclose           = msm_preclose,
+	.postclose          = msm_postclose,
 	.lastclose          = msm_lastclose,
 	.irq_handler        = msm_irq,
 	.irq_preinstall     = msm_irq_preinstall,

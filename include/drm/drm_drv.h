@@ -114,9 +114,6 @@ struct drm_driver {
 	 * one &struct drm_file (see &drm_file.is_master and &drm_device.master)
 	 * there should never be a need to tear down any modeset related
 	 * resources in this callback. Doing so would be a driver design bug.
-	 *
-	 * FIXME: It is not really clear why there's both @preclose and
-	 * @postclose. Without a really good reason, use @postclose only.
 	 */
 	void (*preclose) (struct drm_device *, struct drm_file *file_priv);
 
