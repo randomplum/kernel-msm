@@ -761,9 +761,12 @@ int vmw_fence_obj_wait_ioctl(struct drm_device *dev, void *data,
 		arg->kernel_cookie = jiffies + wait_timeout;
 	}
 
-	base = vmw_fence_obj_lookup(tfile, arg->handle);
-	if (IS_ERR(base))
-		return PTR_ERR(base);
+	base = ttm_base_object_lookup(tfile, arg->handle);
+	if (unlikely(base == NULL)) {
+		pr_err("Wait invalid fence object handle 0x%08lx\n",
+		       (unsigned long)arg->handle);
+		return -EINVAL;
+	}
 
 	fence = &(container_of(base, struct vmw_user_fence, base)->fence);
 
@@ -802,9 +805,12 @@ int vmw_fence_obj_signaled_ioctl(struct drm_device *dev, void *data,
 	struct ttm_object_file *tfile = vmw_fpriv(file_priv)->tfile;
 	struct vmw_private *dev_priv = vmw_priv(dev);
 
-	base = vmw_fence_obj_lookup(tfile, arg->handle);
-	if (IS_ERR(base))
-		return PTR_ERR(base);
+	base = ttm_base_object_lookup(tfile, arg->handle);
+	if (unlikely(base == NULL)) {
+		pr_err("Fence signaled invalid fence object handle 0x%08lx\n",
+		       (unsigned long)arg->handle);
+		return -EINVAL;
+	}
 
 	fence = &(container_of(base, struct vmw_user_fence, base)->fence);
 	fman = fman_from_fence(fence);
