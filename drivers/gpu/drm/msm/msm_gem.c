@@ -26,6 +26,22 @@
 #include "msm_gpu.h"
 #include "msm_mmu.h"
 
+/* The shrinker can be triggered while we hold objA->lock, and need
+ * to grab objB->lock to purge it.  Lockdep just sees these as a single
+ * class of lock, so we use subclasses to teach it the difference.
+ *
+ * OBJ_LOCK_NORMAL is implicit (ie. normal mutex_lock() call), and
+ * OBJ_LOCK_SHRINKER is used in msm_gem_purge().
+ *
+ * It is *essential* that we never go down paths that could trigger the
+ * shrinker for a purgable object.  This is ensured by checking that
+ * msm_obj->madv == MSM_MADV_WILLNEED.
+ */
+enum {
+	OBJ_LOCK_NORMAL,
+	OBJ_LOCK_SHRINKER,
+};
+
 static dma_addr_t physaddr(struct drm_gem_object *obj)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
@@ -150,6 +166,12 @@ struct page **msm_gem_get_pages(struct drm_gem_object *obj)
 	struct page **p;
 
 	mutex_lock(&msm_obj->lock);
+
+	if (WARN_ON(msm_obj->madv != MSM_MADV_WILLNEED)) {
+		mutex_unlock(&msm_obj->lock);
+		return ERR_PTR(-EBUSY);
+	}
+
 	p = get_pages(obj);
 	mutex_unlock(&msm_obj->lock);
 	return p;
@@ -219,6 +241,11 @@ int msm_gem_fault(struct vm_fault *vmf)
 	ret = mutex_lock_interruptible(&msm_obj->lock);
 	if (ret)
 		goto out;
+
+	if (WARN_ON(msm_obj->madv != MSM_MADV_WILLNEED)) {
+		mutex_unlock(&msm_obj->lock);
+		return VM_FAULT_SIGBUS;
+	}
 
 	/* make sure we have pages attached now */
 	pages = get_pages(obj);
@@ -358,6 +385,11 @@ int msm_gem_get_iova(struct drm_gem_object *obj,
 
 	mutex_lock(&msm_obj->lock);
 
+	if (WARN_ON(msm_obj->madv != MSM_MADV_WILLNEED)) {
+		mutex_unlock(&msm_obj->lock);
+		return -EBUSY;
+	}
+
 	vma = lookup_vma(obj, aspace);
 
 	if (!vma) {
@@ -454,6 +486,12 @@ void *msm_gem_get_vaddr(struct drm_gem_object *obj)
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 
 	mutex_lock(&msm_obj->lock);
+
+	if (WARN_ON(msm_obj->madv != MSM_MADV_WILLNEED)) {
+		mutex_unlock(&msm_obj->lock);
+		return ERR_PTR(-EBUSY);
+	}
+
 	if (!msm_obj->vaddr) {
 		struct page **pages = get_pages(obj);
 		if (IS_ERR(pages)) {
@@ -489,12 +527,18 @@ int msm_gem_madvise(struct drm_gem_object *obj, unsigned madv)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 
+	mutex_lock(&msm_obj->lock);
+
 	WARN_ON(!mutex_is_locked(&obj->dev->struct_mutex));
 
 	if (msm_obj->madv != __MSM_MADV_PURGED)
 		msm_obj->madv = madv;
 
-	return (msm_obj->madv != __MSM_MADV_PURGED);
+	madv = msm_obj->madv;
+
+	mutex_unlock(&msm_obj->lock);
+
+	return (madv != __MSM_MADV_PURGED);
 }
 
 void msm_gem_purge(struct drm_gem_object *obj)
@@ -505,6 +549,8 @@ void msm_gem_purge(struct drm_gem_object *obj)
 	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
 	WARN_ON(!is_purgeable(msm_obj));
 	WARN_ON(obj->import_attach);
+
+	mutex_lock_nested(&msm_obj->lock, OBJ_LOCK_SHRINKER);
 
 	put_iova(obj);
 
@@ -526,6 +572,8 @@ void msm_gem_purge(struct drm_gem_object *obj)
 
 	invalidate_mapping_pages(file_inode(obj->filp)->i_mapping,
 			0, (loff_t)-1);
+
+	mutex_unlock(&msm_obj->lock);
 }
 
 void msm_gem_vunmap(struct drm_gem_object *obj)
@@ -660,7 +708,7 @@ void msm_gem_describe(struct drm_gem_object *obj, struct seq_file *m)
 	uint64_t off = drm_vma_node_start(&obj->vma_node);
 	const char *madv;
 
-	WARN_ON(!mutex_is_locked(&obj->dev->struct_mutex));
+	mutex_lock(&msm_obj->lock);
 
 	switch (msm_obj->madv) {
 	case __MSM_MADV_PURGED:
@@ -701,6 +749,8 @@ void msm_gem_describe(struct drm_gem_object *obj, struct seq_file *m)
 	if (fence)
 		describe_fence(fence, "Exclusive", m);
 	rcu_read_unlock();
+
+	mutex_unlock(&msm_obj->lock);
 }
 
 void msm_gem_describe_objects(struct list_head *list, struct seq_file *m)
