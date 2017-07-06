@@ -86,6 +86,10 @@ bool dumpstate = false;
 MODULE_PARM_DESC(dumpstate, "Dump KMS state on errors");
 module_param(dumpstate, bool, 0600);
 
+static bool nomodeset = false;
+MODULE_PARM_DESC(nomodeset, "Disable KMS");
+module_param(nomodeset, bool, 0600);
+
 /*
  * Util/helpers:
  */
@@ -1160,6 +1164,9 @@ static struct platform_driver msm_platform_driver = {
 
 static int __init msm_drm_register(void)
 {
+	if (nomodeset)
+		return -EINVAL;
+
 	DBG("init");
 	msm_mdp_register();
 	msm_dsi_register();
