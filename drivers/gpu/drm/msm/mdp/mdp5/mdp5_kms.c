@@ -22,6 +22,7 @@
 #include "msm_gem.h"
 #include "msm_mmu.h"
 #include "mdp5_kms.h"
+#include "dsi/dsi.h"
 
 static const char *iommu_ports[] = {
 		"mdp_0",
@@ -32,6 +33,9 @@ static int mdp5_hw_init(struct msm_kms *kms)
 	struct mdp5_kms *mdp5_kms = to_mdp5_kms(to_mdp_kms(kms));
 	struct platform_device *pdev = mdp5_kms->pdev;
 	unsigned long flags;
+
+	if (mdp5_kms->poweron_enabled)
+		return 0;
 
 	pm_runtime_get_sync(&pdev->dev);
 	mdp5_enable(mdp5_kms);
@@ -70,6 +74,32 @@ static int mdp5_hw_init(struct msm_kms *kms)
 	pm_runtime_put_sync(&pdev->dev);
 
 	return 0;
+}
+
+static void mdp5_hw_readback(struct msm_kms *kms)
+{
+	struct mdp5_kms *mdp5_kms = to_mdp5_kms(to_mdp_kms(kms));
+	struct msm_drm_private *priv = mdp5_kms->dev->dev_private;
+	unsigned i;
+
+	if (!mdp5_kms->poweron_enabled)
+		return;
+
+	/* We need to work backwards up the pipeline starting with the
+	 * connectors.
+	 *
+	 * TODO eDP
+	 * TODO HDMI
+	 */
+	for (i = 0; i < ARRAY_SIZE(priv->dsi); i++)
+		if (priv->dsi[i])
+			msm_dsi_hw_readback(priv->dsi[i]);
+}
+
+static void mdp5_hw_readback_encoder(struct msm_kms *kms,
+		struct drm_encoder *encoder)
+{
+	mdp5_encoder_readback(encoder);
 }
 
 struct mdp5_state *mdp5_get_state(struct drm_atomic_state *s)
@@ -223,6 +253,8 @@ static int mdp5_kms_debugfs_init(struct msm_kms *kms, struct drm_minor *minor)
 static const struct mdp_kms_funcs kms_funcs = {
 	.base = {
 		.hw_init         = mdp5_hw_init,
+		.hw_readback     = mdp5_hw_readback,
+		.hw_readback_encoder = mdp5_hw_readback_encoder,
 		.irq_preinstall  = mdp5_irq_preinstall,
 		.irq_postinstall = mdp5_irq_postinstall,
 		.irq_uninstall   = mdp5_irq_uninstall,
@@ -944,11 +976,22 @@ static int mdp5_init(struct platform_device *pdev, struct drm_device *dev)
 	/* optional clocks: */
 	get_clk(pdev, &mdp5_kms->lut_clk, "lut_clk", false);
 
-	/* we need to set a default rate before enabling.  Set a safe
-	 * rate first, then figure out hw revision, and then set a
-	 * more optimal rate:
+	/* If clock is enabled when driver is loaded, then bootloader
+	 * has already set up the display:
 	 */
-	clk_set_rate(mdp5_kms->core_clk, 200000000);
+	if (__clk_is_enabled(mdp5_kms->core_clk)) {
+		mdp5_kms->poweron_enabled = true;
+		mdp5_kms->enable_count++;
+
+		/* let pm-runtime know that we are already enabled: */
+		pm_runtime_get_noresume(&pdev->dev);
+	} else {
+		/* we need to set a default rate before enabling.  Set a safe
+		 * rate first, then figure out hw revision, and then set a
+		 * more optimal rate:
+		 */
+		clk_set_rate(mdp5_kms->core_clk, 200000000);
+	}
 
 	pm_runtime_enable(&pdev->dev);
 	mdp5_kms->rpm_enabled = true;

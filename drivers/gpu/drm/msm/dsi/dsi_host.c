@@ -28,6 +28,8 @@
 #include <linux/regmap.h>
 #include <video/mipi_display.h>
 
+#include "msm_drv.h"
+#include "msm_kms.h"
 #include "dsi.h"
 #include "dsi.xml.h"
 #include "sfpb.xml.h"
@@ -1860,6 +1862,20 @@ void msm_dsi_host_unregister(struct mipi_dsi_host *host)
 		host->ops = NULL;
 		msm_host->registered = false;
 	}
+}
+
+// XXX msm_dsi_host_hw_readback()... preserve the layer-cake?
+void msm_dsi_hw_readback(struct msm_dsi *msm_dsi)
+{
+	struct msm_dsi_host *msm_host = to_msm_dsi_host(msm_dsi->host);
+	struct msm_drm_private *priv = msm_dsi->dev->dev_private;
+	struct msm_kms *kms = priv->kms;
+
+	if (!__clk_is_enabled(msm_host->pixel_clk))
+		return;
+
+	kms->funcs->hw_readback_encoder(kms, msm_dsi->encoder);
+	msm_dsi->connector->state->crtc = msm_dsi->encoder->crtc;
 }
 
 int msm_dsi_host_xfer_prepare(struct mipi_dsi_host *host,
