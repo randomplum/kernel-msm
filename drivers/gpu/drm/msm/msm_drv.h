@@ -20,6 +20,7 @@
 
 #include <linux/kernel.h>
 #include <linux/clk.h>
+#include <linux/clk-provider.h>
 #include <linux/cpufreq.h>
 #include <linux/module.h>
 #include <linux/component.h>
@@ -109,6 +110,7 @@ struct msm_drm_private {
 	struct msm_file_private *lastctx;
 
 	struct drm_fb_helper *fbdev;
+	struct drm_framebuffer *stolen_fb;
 
 	struct msm_rd_state *rd;
 	struct msm_perf_state *perf;
@@ -248,10 +250,10 @@ uint32_t msm_framebuffer_iova(struct drm_framebuffer *fb,
 		struct msm_gem_address_space *aspace, int plane);
 struct drm_gem_object *msm_framebuffer_bo(struct drm_framebuffer *fb, int plane);
 const struct msm_format *msm_framebuffer_format(struct drm_framebuffer *fb);
-struct drm_framebuffer *msm_framebuffer_init(struct drm_device *dev,
-		const struct drm_mode_fb_cmd2 *mode_cmd, struct drm_gem_object **bos);
 struct drm_framebuffer *msm_framebuffer_create(struct drm_device *dev,
 		struct drm_file *file, const struct drm_mode_fb_cmd2 *mode_cmd);
+struct drm_framebuffer * msm_alloc_stolen_fb(struct drm_device *dev,
+		int w, int h, int p, uint32_t format);
 
 struct drm_fb_helper *msm_fbdev_init(struct drm_device *dev);
 void msm_fbdev_free(struct drm_device *dev);

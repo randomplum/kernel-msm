@@ -105,7 +105,8 @@ static struct page **get_pages(struct drm_gem_object *obj)
 		/* For non-cached buffers, ensure the new pages are clean
 		 * because display controller, GPU, etc. are not coherent:
 		 */
-		if (msm_obj->flags & (MSM_BO_WC|MSM_BO_UNCACHED))
+		if ((msm_obj->flags & (MSM_BO_WC|MSM_BO_UNCACHED)) &&
+				use_pages(obj))
 			dma_map_sg(dev->dev, msm_obj->sgt->sgl,
 					msm_obj->sgt->nents, DMA_BIDIRECTIONAL);
 	}
