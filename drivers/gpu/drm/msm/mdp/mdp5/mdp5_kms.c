@@ -714,7 +714,9 @@ struct msm_kms *mdp5_kms_init(struct drm_device *dev)
 		if (mdp5_cfg_intf_is_virtual(config->hw->intf.connect[i]) ||
 		    !config->hw->intf.base[i])
 			continue;
-		mdp5_write(mdp5_kms, REG_MDP5_INTF_TIMING_ENGINE_EN(i), 0);
+
+		if (!mdp5_kms->poweron_enabled)
+			mdp5_write(mdp5_kms, REG_MDP5_INTF_TIMING_ENGINE_EN(i), 0);
 
 		mdp5_write(mdp5_kms, REG_MDP5_INTF_FRAME_LINE_COUNT_EN(i), 0x3);
 	}

@@ -520,6 +520,7 @@ struct msm_dsi_pll *msm_dsi_pll_28nm_8960_init(struct platform_device *pdev,
 	pll->disable_seq = dsi_pll_28nm_disable_seq;
 	pll->save_state = dsi_pll_28nm_save_state;
 	pll->restore_state = dsi_pll_28nm_restore_state;
+	pll->pll_on = pll_28nm_poll_for_ready(pll_28nm, 0, 0);
 
 	pll->en_seq_cnt = 1;
 	pll->enable_seqs[0] = dsi_pll_28nm_enable_seq;
