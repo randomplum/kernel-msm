@@ -30,7 +30,11 @@
 		sdhc2 = &sdhc_2; /* SDC2 SD card slot */
 	};
 
-	chosen { };
+	chosen {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+	};
 
 	memory {
 		device_type = "memory";
