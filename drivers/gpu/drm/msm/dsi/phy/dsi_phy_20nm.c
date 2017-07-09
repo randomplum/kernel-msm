@@ -80,6 +80,7 @@ static int dsi_20nm_phy_enable(struct msm_dsi_phy *phy, int src_pll_id,
 	u32 cfg_4[4] = {0x20, 0x40, 0x20, 0x00};
 
 	DBG("");
+dump_stack();
 
 	if (msm_dsi_dphy_timing_calc(timing, clk_req)) {
 		dev_err(&phy->pdev->dev,

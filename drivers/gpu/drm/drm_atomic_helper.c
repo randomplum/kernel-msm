@@ -539,8 +539,9 @@ drm_atomic_helper_check_modeset(struct drm_device *dev,
 		}
 
 		if (new_crtc_state->enable != has_connectors) {
-			DRM_DEBUG_ATOMIC("[CRTC:%d:%s] enabled/connectors mismatch\n",
-					 crtc->base.id, crtc->name);
+			DRM_DEBUG_ATOMIC("[CRTC:%d:%s] enabled/connectors mismatch.. 0x%x 0x%x\n",
+					 crtc->base.id, crtc->name,
+					 new_crtc_state->enable, new_crtc_state->connector_mask);
 
 			return -EINVAL;
 		}
@@ -918,6 +919,7 @@ crtc_set_mode(struct drm_device *dev, struct drm_atomic_state *old_state)
 					 crtc->base.id, crtc->name);
 
 			funcs->mode_set_nofb(crtc);
+DRM_DEBUG_ATOMIC("Ok!");
 		}
 	}
 
@@ -926,10 +928,12 @@ crtc_set_mode(struct drm_device *dev, struct drm_atomic_state *old_state)
 		struct drm_encoder *encoder;
 		struct drm_display_mode *mode, *adjusted_mode;
 
+DRM_DEBUG_ATOMIC("check: [CONNECTOR:%d:%s]\n", connector->base.id, connector->name);
 		if (!new_conn_state->best_encoder)
 			continue;
 
 		encoder = new_conn_state->best_encoder;
+DRM_DEBUG_ATOMIC("check: [ENCODER:%d:%s]\n", encoder->base.id, encoder->name);
 		funcs = encoder->helper_private;
 		new_crtc_state = new_conn_state->crtc->state;
 		mode = &new_crtc_state->mode;

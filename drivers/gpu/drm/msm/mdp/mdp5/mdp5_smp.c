@@ -257,6 +257,7 @@ static unsigned update_smp_state(struct mdp5_smp *smp,
 	return nblks;
 }
 
+//[    2.062576] Unhandled fault: synchronous external abort (0x96000010) at 0xffff0000090280dc
 static void readback_smp_state(struct mdp5_smp *smp, u32 cid,
 		mdp5_smp_state_t *assigned)
 {
