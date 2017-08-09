@@ -363,19 +363,20 @@ int dsi_phy_enable_resource(struct msm_dsi_phy *phy)
 
 	pm_runtime_get_sync(dev);
 
-	ret = clk_prepare_enable(phy->ahb_clk);
-	if (ret) {
-		dev_err(dev, "%s: can't enable ahb clk, %d\n", __func__, ret);
-		pm_runtime_put_sync(dev);
-	}
-
-	return ret;
+//	ret = clk_prepare_enable(phy->ahb_clk);
+//	if (ret) {
+//		dev_err(dev, "%s: can't enable ahb clk, %d\n", __func__, ret);
+//		pm_runtime_put_sync(dev);
+//	}
+//
+//	return ret;
+	return 0;
 }
 
 static void dsi_phy_disable_resource(struct msm_dsi_phy *phy)
 {
 	DBG("");
-	clk_disable_unprepare(phy->ahb_clk);
+//	clk_disable_unprepare(phy->ahb_clk);
 	pm_runtime_put_autosuspend(&phy->pdev->dev);
 }
 

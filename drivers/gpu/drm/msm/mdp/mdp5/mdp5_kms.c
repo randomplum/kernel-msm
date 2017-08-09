@@ -165,7 +165,10 @@ static void mdp5_prepare_commit(struct msm_kms *kms, struct drm_atomic_state *st
 	struct mdp5_kms *mdp5_kms = to_mdp5_kms(to_mdp_kms(kms));
 	struct device *dev = &mdp5_kms->pdev->dev;
 
+DBG("1: enable_count=%d", mdp5_kms->enable_count);
 	pm_runtime_get_sync(dev);
+DBG("2: enable_count=%d", mdp5_kms->enable_count);
+WARN_ON(!__clk_is_enabled(mdp5_kms->ahb_clk));
 
 	if (mdp5_kms->smp)
 		mdp5_smp_prepare_commit(mdp5_kms->smp, &mdp5_kms->state->smp);
@@ -314,6 +317,15 @@ int mdp5_disable(struct mdp5_kms *mdp5_kms)
 	if (mdp5_kms->lut_clk)
 		clk_disable_unprepare(mdp5_kms->lut_clk);
 
+	DBG("clk state: enable_count=%d, ahb=%d (%d), axi=%d (%d), core=%d (%d)",
+		mdp5_kms->enable_count,
+		__clk_is_enabled(mdp5_kms->ahb_clk),
+		__clk_get_enable_count(mdp5_kms->ahb_clk),
+		__clk_is_enabled(mdp5_kms->axi_clk),
+		__clk_get_enable_count(mdp5_kms->axi_clk),
+		__clk_is_enabled(mdp5_kms->core_clk),
+		__clk_get_enable_count(mdp5_kms->core_clk));
+
 	return 0;
 }
 
@@ -328,6 +340,15 @@ int mdp5_enable(struct mdp5_kms *mdp5_kms)
 	clk_prepare_enable(mdp5_kms->core_clk);
 	if (mdp5_kms->lut_clk)
 		clk_prepare_enable(mdp5_kms->lut_clk);
+
+	DBG("clk state: enable_count=%d, ahb=%d (%d), axi=%d (%d), core=%d (%d)",
+		mdp5_kms->enable_count,
+		__clk_is_enabled(mdp5_kms->ahb_clk),
+		__clk_get_enable_count(mdp5_kms->ahb_clk),
+		__clk_is_enabled(mdp5_kms->axi_clk),
+		__clk_get_enable_count(mdp5_kms->axi_clk),
+		__clk_is_enabled(mdp5_kms->core_clk),
+		__clk_get_enable_count(mdp5_kms->core_clk));
 
 	return 0;
 }
@@ -968,6 +989,10 @@ static int mdp5_init(struct platform_device *pdev, struct drm_device *dev)
 	/* optional clocks: */
 	get_clk(pdev, &mdp5_kms->lut_clk, "lut", false);
 
+	// TODO should this be before or after pm_runtime_set_active()??
+	pm_runtime_enable(&pdev->dev);
+	mdp5_kms->rpm_enabled = true;
+
 	/* If clock is enabled when driver is loaded, then bootloader
 	 * has already set up the display:
 	 */
@@ -976,7 +1001,13 @@ static int mdp5_init(struct platform_device *pdev, struct drm_device *dev)
 		mdp5_kms->enable_count++;
 
 		/* let pm-runtime know that we are already enabled: */
-		pm_runtime_get_noresume(&pdev->dev);
+		pm_runtime_set_active(dev->dev);
+		pm_runtime_set_active(&pdev->dev);
+		// XXX need to do this for dsi/hdmi/etc depending on what is on..
+
+DBG("core_clk: %s (%d)", __clk_is_enabled(mdp5_kms->core_clk) ? "on" : "off", __clk_get_enable_count(mdp5_kms->core_clk));
+DBG("ahb_clk:  %s (%d)", __clk_is_enabled(mdp5_kms->ahb_clk)  ? "on" : "off", __clk_get_enable_count(mdp5_kms->ahb_clk));
+DBG("axi_clk:  %s (%d)", __clk_is_enabled(mdp5_kms->axi_clk)  ? "on" : "off", __clk_get_enable_count(mdp5_kms->axi_clk));
 	} else {
 		/* we need to set a default rate before enabling.  Set a safe
 		 * rate first, then figure out hw revision, and then set a
@@ -984,9 +1015,6 @@ static int mdp5_init(struct platform_device *pdev, struct drm_device *dev)
 		 */
 		clk_set_rate(mdp5_kms->core_clk, 200000000);
 	}
-
-	pm_runtime_enable(&pdev->dev);
-	mdp5_kms->rpm_enabled = true;
 
 	read_mdp_hw_revision(mdp5_kms, &major, &minor);
 

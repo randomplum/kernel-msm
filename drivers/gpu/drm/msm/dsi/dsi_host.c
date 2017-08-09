@@ -427,37 +427,38 @@ exit:
 
 static int dsi_bus_clk_enable(struct msm_dsi_host *msm_host)
 {
-	const struct msm_dsi_config *cfg = msm_host->cfg_hnd->cfg;
-	int i, ret;
-
-	DBG("id=%d", msm_host->id);
-
-	for (i = 0; i < cfg->num_bus_clks; i++) {
-		ret = clk_prepare_enable(msm_host->bus_clks[i]);
-		if (ret) {
-			pr_err("%s: failed to enable bus clock %d ret %d\n",
-				__func__, i, ret);
-			goto err;
-		}
-	}
-
+//	const struct msm_dsi_config *cfg = msm_host->cfg_hnd->cfg;
+//	int i, ret;
+//
+//	DBG("id=%d", msm_host->id);
+//
+//	for (i = 0; i < cfg->num_bus_clks; i++) {
+//		ret = clk_prepare_enable(msm_host->bus_clks[i]);
+//		if (ret) {
+//			pr_err("%s: failed to enable bus clock %d ret %d\n",
+//				__func__, i, ret);
+//			goto err;
+//		}
+//	}
+//
+//	return 0;
+//err:
+//	for (; i > 0; i--)
+//		clk_disable_unprepare(msm_host->bus_clks[i]);
+//
+//	return ret;
 	return 0;
-err:
-	for (; i > 0; i--)
-		clk_disable_unprepare(msm_host->bus_clks[i]);
-
-	return ret;
 }
 
 static void dsi_bus_clk_disable(struct msm_dsi_host *msm_host)
 {
-	const struct msm_dsi_config *cfg = msm_host->cfg_hnd->cfg;
-	int i;
-
-	DBG("");
-
-	for (i = cfg->num_bus_clks - 1; i >= 0; i--)
-		clk_disable_unprepare(msm_host->bus_clks[i]);
+//	const struct msm_dsi_config *cfg = msm_host->cfg_hnd->cfg;
+//	int i;
+//
+//	DBG("");
+//
+//	for (i = cfg->num_bus_clks - 1; i >= 0; i--)
+//		clk_disable_unprepare(msm_host->bus_clks[i]);
 }
 
 int msm_dsi_runtime_suspend(struct device *dev)
@@ -1891,14 +1892,6 @@ void msm_dsi_hw_readback(struct msm_dsi *msm_dsi)
 
 	/* also fixup refcnt on regulators: */
 	dsi_host_regulator_enable(msm_host);
-
-	/* clocks will already be on, but with just a single refcnt,
-	 * whereas normally (at least in some cases) both dsi and
-	 * mdp5 take a reference to the same clks.  So take an extra
-	 * reference here to balance things out in the disable path.
-	 */
-	dsi_bus_clk_enable(msm_host);
-	dsi_phy_enable_resource(msm_dsi->phy);
 }
 
 int msm_dsi_host_xfer_prepare(struct mipi_dsi_host *host,
