@@ -31,6 +31,9 @@ struct interconnect_path {
 	struct interconnect_req reqs[0];
 };
 
+#define CREATE_TRACE_POINTS
+#include <trace/events/interconnect.h>
+
 static struct interconnect_node *node_find(int id)
 {
 	struct interconnect_node *node = ERR_PTR(-EPROBE_DEFER);
@@ -205,6 +208,8 @@ int interconnect_set(struct interconnect_path *path,
 	size_t i;
 	int ret = 0;
 
+	trace_interconnect_set(path, creq);
+
 	for (i = 0; i < path->num_nodes; i++) {
 		node = path->reqs[i].node;
 		icp = node->icp;
@@ -251,6 +256,8 @@ int interconnect_set(struct interconnect_path *path,
 	}
 
 out:
+	trace_interconnect_set_complete(path, creq);
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(interconnect_set);
