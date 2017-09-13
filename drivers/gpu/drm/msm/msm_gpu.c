@@ -226,6 +226,8 @@ static void update_fences(struct msm_gpu *gpu, struct msm_ringbuffer *ring,
 {
 	struct msm_gem_submit *submit;
 
+	WARN_ON(!mutex_is_locked(&gpu->dev->struct_mutex));
+
 	list_for_each_entry(submit, &ring->submits, node) {
 		if (submit->seqno > fence)
 			break;
@@ -246,6 +248,8 @@ static void recover_worker(struct work_struct *work)
 	uint64_t fence;
 	int i;
 
+	mutex_lock(&dev->struct_mutex);
+
 	/* Update all the rings with the latest and greatest fence */
 	for (i = 0; i < ARRAY_SIZE(gpu->rb); i++) {
 		struct msm_ringbuffer *ring = gpu->rb[i];
@@ -261,9 +265,6 @@ static void recover_worker(struct work_struct *work)
 
 		update_fences(gpu, ring, fence);
 	}
-
-	mutex_lock(&dev->struct_mutex);
-
 
 	dev_err(dev->dev, "%s: hangcheck recover!\n", gpu->name);
 	fence = cur_ring->memptrs->fence + 1;
@@ -491,10 +492,11 @@ static void retire_worker(struct work_struct *work)
 	struct drm_device *dev = gpu->dev;
 	int i;
 
+	mutex_lock(&dev->struct_mutex);
+
 	for (i = 0; i < gpu->nr_rings; i++)
 		update_fences(gpu, gpu->rb[i], gpu->rb[i]->memptrs->fence);
 
-	mutex_lock(&dev->struct_mutex);
 	retire_submits(gpu);
 	mutex_unlock(&dev->struct_mutex);
 }
