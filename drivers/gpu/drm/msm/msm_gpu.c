@@ -235,6 +235,20 @@ static void update_fences(struct msm_gpu *gpu, struct msm_ringbuffer *ring,
 	}
 }
 
+static struct msm_gem_submit *
+find_submit(struct msm_ringbuffer *ring, uint32_t fence)
+{
+	struct msm_gem_submit *submit;
+
+	WARN_ON(!mutex_is_locked(&ring->gpu->dev->struct_mutex));
+
+	list_for_each_entry(submit, &ring->submits, node)
+		if (submit->seqno == fence)
+			return submit;
+
+	return NULL;
+}
+
 static void retire_submits(struct msm_gpu *gpu);
 
 static void recover_worker(struct work_struct *work)
@@ -268,19 +282,35 @@ static void recover_worker(struct work_struct *work)
 	dev_err(dev->dev, "%s: hangcheck recover!\n", gpu->name);
 	fence = cur_ring->memptrs->fence + 1;
 
-	list_for_each_entry(submit, &cur_ring->submits, node) {
-		if (submit->seqno == fence) {
-			struct task_struct *task;
+	submit = find_submit(cur_ring, fence);
+	if (submit) {
+		struct task_struct *task;
 
-			rcu_read_lock();
-			task = pid_task(submit->pid, PIDTYPE_PID);
-			if (task) {
-				dev_err(dev->dev, "%s: offending task: %s\n",
-						gpu->name, task->comm);
-			}
-			rcu_read_unlock();
-			break;
+		rcu_read_lock();
+		task = pid_task(submit->pid, PIDTYPE_PID);
+		if (task) {
+			char buf[256];
+			int len;
+
+			/*
+			 * So slightly annoying, in other paths like
+			 * mmap'ing gem buffers, mmap_sem is acquired
+			 * before struct_mutex, which means we can't
+			 * hold struct_mutex across the call to
+			 * get_cmdline().  But submits are retired
+			 * from the same in-order workqueue, so we can
+			 * safely drop the lock here without worrying
+			 * about the submit going away.
+			 */
+			mutex_unlock(&dev->struct_mutex);
+			len = get_cmdline(task, buf, sizeof(buf));
+			mutex_lock(&dev->struct_mutex);
+
+			dev_err(dev->dev, "%s: offending task: %s (%-*s)\n",
+					gpu->name, task->comm, len, buf);
 		}
+		rcu_read_unlock();
+
 	}
 
 	if (msm_gpu_active(gpu)) {
