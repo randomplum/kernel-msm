@@ -92,9 +92,6 @@ struct msm_gpu {
 	/* list of GEM active objects: */
 	struct list_head active_list;
 
-	/* The sequence number for ring submissions */
-	uint32_t seqno;
-
 	/* does gpu need hw_init? */
 	bool needs_hw_init;
 

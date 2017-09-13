@@ -524,7 +524,7 @@ void msm_gpu_submit(struct msm_gpu *gpu, struct msm_gem_submit *submit,
 
 	msm_gpu_hw_init(gpu);
 
-	submit->seqno = ++gpu->seqno;
+	submit->seqno = ++ring->seqno;
 
 	list_add_tail(&submit->node, &ring->submits);
 
