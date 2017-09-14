@@ -124,6 +124,17 @@ enum iommu_attr {
 	DOMAIN_ATTR_FSL_PAMU_ENABLE,
 	DOMAIN_ATTR_FSL_PAMUV1,
 	DOMAIN_ATTR_NESTING,	/* two stages of translation */
+	/*
+	 * Domain stalls faulting translations, if DOMAIN_ATTR_STALL is
+	 * enabled, user of domain calls iommu_domain_resume() at some
+	 * point (either from fault handler or asynchronously after
+	 * the fault handler is called (for example, from a workqueue)
+	 * to resume translations.
+	 *
+	 * The attribute value is a bool, and should be set before
+	 * attaching the domain.
+	 */
+	DOMAIN_ATTR_STALL,
 	DOMAIN_ATTR_MAX,
 };
 
@@ -207,6 +218,8 @@ struct iommu_ops {
 			       enum iommu_attr attr, void *data);
 	int (*domain_set_attr)(struct iommu_domain *domain,
 			       enum iommu_attr attr, void *data);
+
+	void (*domain_resume)(struct iommu_domain *domain, bool terminate);
 
 	/* Request/Free a list of reserved regions for a device */
 	void (*get_resv_regions)(struct device *dev, struct list_head *list);
@@ -333,6 +346,7 @@ extern int iommu_domain_get_attr(struct iommu_domain *domain, enum iommu_attr,
 				 void *data);
 extern int iommu_domain_set_attr(struct iommu_domain *domain, enum iommu_attr,
 				 void *data);
+extern void iommu_domain_resume(struct iommu_domain *domain, bool terminate);
 
 /* Window handling function prototypes */
 extern int iommu_domain_window_enable(struct iommu_domain *domain, u32 wnd_nr,

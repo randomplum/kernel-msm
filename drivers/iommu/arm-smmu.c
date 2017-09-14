@@ -239,6 +239,7 @@ struct arm_smmu_domain {
 	struct io_pgtable_ops		*pgtbl_ops;
 	struct arm_smmu_cfg		cfg;
 	enum arm_smmu_domain_stage	stage;
+	bool				stall;
 	struct mutex			init_mutex; /* Protects smmu pointer */
 	spinlock_t			cb_lock; /* Serialises ATS1* ops */
 	struct iommu_domain		domain;
@@ -544,6 +545,24 @@ static const struct iommu_gather_ops arm_smmu_s2_tlb_ops_v1 = {
 	.tlb_sync	= arm_smmu_tlb_sync_vmid,
 };
 
+static void arm_smmu_domain_resume(struct iommu_domain *domain, bool terminate)
+{
+	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
+	struct arm_smmu_cfg *cfg = &smmu_domain->cfg;
+	struct arm_smmu_device *smmu = smmu_domain->smmu;
+	void __iomem *cb_base;
+	unsigned val;
+
+	cb_base = ARM_SMMU_CB(smmu, cfg->cbndx);
+
+	if (terminate)
+		val = RESUME_TERMINATE;
+	else
+		val = RESUME_RETRY;
+
+	writel_relaxed(val, cb_base + ARM_SMMU_CB_RESUME);
+}
+
 static irqreturn_t arm_smmu_context_fault(int irq, void *dev)
 {
 	u32 fsr, fsynr;
@@ -563,11 +582,14 @@ static irqreturn_t arm_smmu_context_fault(int irq, void *dev)
 	fsynr = readl_relaxed(cb_base + ARM_SMMU_CB_FSYNR0);
 	iova = readq_relaxed(cb_base + ARM_SMMU_CB_FAR);
 
-	dev_err_ratelimited(smmu->dev,
-	"Unhandled context fault: fsr=0x%x, iova=0x%08lx, fsynr=0x%x, cb=%d\n",
-			    fsr, iova, fsynr, cfg->cbndx);
-
 	writel(fsr, cb_base + ARM_SMMU_CB_FSR);
+
+	if (!report_iommu_fault(domain, smmu->dev, iova, 0)) {
+		dev_err_ratelimited(smmu->dev,
+		"Unhandled context fault: fsr=0x%x, iova=0x%08lx, fsynr=0x%x, cb=%d\n",
+				    fsr, iova, fsynr, cfg->cbndx);
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -698,6 +720,8 @@ static void arm_smmu_init_context_bank(struct arm_smmu_domain *smmu_domain,
 
 	/* SCTLR */
 	reg = SCTLR_CFIE | SCTLR_CFRE | SCTLR_AFE | SCTLR_TRE | SCTLR_M;
+	if (smmu_domain->stall)
+		reg |= SCTLR_CFCFG;    /* stall on fault */
 	if (stage1)
 		reg |= SCTLR_S1_ASIDPNE;
 #ifdef __BIG_ENDIAN
@@ -1524,6 +1548,9 @@ static int arm_smmu_domain_set_attr(struct iommu_domain *domain,
 			smmu_domain->stage = ARM_SMMU_DOMAIN_S1;
 
 		break;
+	case DOMAIN_ATTR_STALL:
+		smmu_domain->stall = *(bool *)data;
+		break;
 	default:
 		ret = -ENODEV;
 	}
@@ -1587,6 +1614,7 @@ static struct iommu_ops arm_smmu_ops = {
 	.device_group		= arm_smmu_device_group,
 	.domain_get_attr	= arm_smmu_domain_get_attr,
 	.domain_set_attr	= arm_smmu_domain_set_attr,
+	.domain_resume		= arm_smmu_domain_resume,
 	.of_xlate		= arm_smmu_of_xlate,
 	.get_resv_regions	= arm_smmu_get_resv_regions,
 	.put_resv_regions	= arm_smmu_put_resv_regions,
