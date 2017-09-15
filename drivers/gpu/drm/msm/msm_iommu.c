@@ -21,6 +21,7 @@
 struct msm_iommu {
 	struct msm_mmu base;
 	struct iommu_domain *domain;
+	bool stall;
 };
 #define to_msm_iommu(x) container_of(x, struct msm_iommu, base)
 
@@ -28,8 +29,9 @@ static int msm_fault_handler(struct iommu_domain *domain, struct device *dev,
 		unsigned long iova, int flags, void *arg)
 {
 	struct msm_iommu *iommu = arg;
-	if (iommu->base.handler)
-		return iommu->base.handler(iommu->base.arg, iova, flags);
+	struct msm_mmu *mmu = &iommu->base;
+	if (mmu->handler)
+		return mmu->handler(mmu->arg, iova, flags, iommu->stall);
 	pr_warn_ratelimited("*** fault: iova=%08lx, flags=%d\n", iova, flags);
 	return 0;
 }
@@ -39,6 +41,14 @@ static int msm_iommu_attach(struct msm_mmu *mmu, const char * const *names,
 {
 	struct msm_iommu *iommu = to_msm_iommu(mmu);
 	int ret;
+
+	if (iommu->base.handler) {
+		bool stall = true;
+		ret = iommu_domain_set_attr(iommu->domain,
+				DOMAIN_ATTR_STALL, &stall);
+		if (!ret)
+			iommu->stall = true;
+	}
 
 	pm_runtime_get_sync(mmu->dev);
 	ret = iommu_attach_device(iommu->domain, mmu->dev);
@@ -83,6 +93,15 @@ static int msm_iommu_unmap(struct msm_mmu *mmu, uint64_t iova,
 	return 0;
 }
 
+static void msm_iommu_resume(struct msm_mmu *mmu, bool terminate)
+{
+	struct msm_iommu *iommu = to_msm_iommu(mmu);
+
+	pm_runtime_get_sync(mmu->dev);
+	iommu_domain_resume(iommu->domain, terminate);
+	pm_runtime_put_sync(mmu->dev);
+}
+
 static void msm_iommu_destroy(struct msm_mmu *mmu)
 {
 	struct msm_iommu *iommu = to_msm_iommu(mmu);
@@ -95,6 +114,7 @@ static const struct msm_mmu_funcs funcs = {
 		.detach = msm_iommu_detach,
 		.map = msm_iommu_map,
 		.unmap = msm_iommu_unmap,
+		.resume = msm_iommu_resume,
 		.destroy = msm_iommu_destroy,
 };
 

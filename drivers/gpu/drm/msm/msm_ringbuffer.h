@@ -36,6 +36,7 @@ struct msm_ringbuffer {
 	struct list_head submits;
 	uint64_t iova;
 	uint32_t seqno;
+	uint32_t fault_fence;     /* last faulting seqno */
 	uint32_t hangcheck_fence;
 	struct msm_rbmemptrs *memptrs;
 	uint64_t memptrs_iova;

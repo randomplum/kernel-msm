@@ -61,6 +61,7 @@ struct msm_gpu_funcs {
 	irqreturn_t (*irq)(struct msm_gpu *irq);
 	struct msm_ringbuffer *(*active_ring)(struct msm_gpu *gpu);
 	void (*recover)(struct msm_gpu *gpu);
+	int (*fault)(struct msm_gpu *gpu, unsigned long iova, int flags);
 	void (*destroy)(struct msm_gpu *gpu);
 #ifdef CONFIG_DEBUG_FS
 	/* show GPU status in debugfs: */
@@ -97,6 +98,17 @@ struct msm_gpu {
 
 	/* worker for handling active-list retiring: */
 	struct work_struct retire_work;
+
+	/* worker for handling faults: */
+	struct work_struct fault_work;
+
+	/* Faulting iova/flags, used to pass values from fault handler
+	 * (IRQ) to fault_worker().  While the IOMMU is stalled we
+	 * should not get any further fault IRQs, so the value stays
+	 * valid until fault_worker() resumes the stalled IOMMU.
+	 */
+	uint64_t fault_iova;
+	int fault_flags;
 
 	void __iomem *mmio;
 	int irq;
