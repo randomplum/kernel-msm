@@ -724,6 +724,7 @@ static void arm_smmu_init_context_bank(struct arm_smmu_domain *smmu_domain,
 		reg |= SCTLR_CFCFG;    /* stall on fault */
 	if (stage1)
 		reg |= SCTLR_S1_ASIDPNE;
+	reg |= SCTLR_HUPCF;
 #ifdef __BIG_ENDIAN
 	reg |= SCTLR_E;
 #endif
