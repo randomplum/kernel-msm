@@ -268,7 +268,7 @@ static void snapshot_buf(struct msm_rd_state *rd,
 	struct msm_gem_object *obj = submit->bos[idx].obj;
 	const char *buf;
 
-	buf = msm_gem_get_vaddr(&obj->base);
+	buf = msm_gem_get_vaddr_active(&obj->base);
 	if (IS_ERR(buf))
 		return;
 
