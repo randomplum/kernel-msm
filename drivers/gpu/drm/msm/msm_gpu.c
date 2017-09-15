@@ -387,6 +387,80 @@ static void hangcheck_handler(unsigned long data)
 }
 
 /*
+ * Fault handling:
+ */
+
+static void fault_worker(struct work_struct *work)
+{
+	struct msm_gpu *gpu = container_of(work, struct msm_gpu, fault_work);
+	struct drm_device *dev = gpu->dev;
+	struct msm_drm_private *priv = dev->dev_private;
+	struct msm_ringbuffer *ring = gpu->funcs->active_ring(gpu);
+	struct msm_gem_submit *submit;
+	struct msm_mmu *mmu = gpu->aspace->mmu;
+
+	mutex_lock(&dev->struct_mutex);
+
+	submit = find_submit(ring, ring->memptrs->fence + 1);
+	if (submit) {
+		/* TODO would be nice to print comm/cmdline like we do
+		 * with hangs to make it easier to see which process
+		 * triggered the fault.. also would be nice if this
+		 * ended up in the dumped submit.
+		 */
+		msm_rd_dump_submit(priv->hangrd, submit,
+			"gpu fault: iova=%08lx, flags=%d",
+			gpu->fault_iova, gpu->fault_flags);
+	}
+
+	mutex_unlock(&dev->struct_mutex);
+
+	mmu->funcs->resume(mmu, true);
+
+	hangcheck_timer_reset(gpu);
+}
+
+static int msm_gpu_fault(void *arg, unsigned long iova, int flags, bool async)
+{
+	struct msm_gpu *gpu = arg;
+	struct msm_drm_private *priv = gpu->dev->dev_private;
+	struct msm_ringbuffer *ring = gpu->funcs->active_ring(gpu);
+	int ret;
+
+	if (gpu->funcs->fault) {
+		ret = gpu->funcs->fault(gpu, iova, flags);
+	} else {
+		pr_warn_ratelimited("*** gpu fault: iova=%08lx, flags=%d\n",
+				iova, flags);
+		ret = 0;
+	}
+
+	if (async) {
+		unsigned fence = ring->memptrs->fence + 1;
+		if (fence > ring->fault_fence) {
+			ring->fault_fence = fence;
+			/* this might take a while, kill the hangcheck timer
+			 * until it is finished.
+			 */
+			del_timer(&gpu->hangcheck_timer);
+			gpu->fault_iova = iova;
+			gpu->fault_flags = flags;
+			queue_work(priv->wq, &gpu->fault_work);
+		} else {
+			/* We can get 1000's of faults at a time, if we've
+			 * already dumped the submit, then just resume
+			 * immediately without queuing work
+			 */
+			struct msm_mmu *mmu = gpu->aspace->mmu;
+			mmu->funcs->resume(mmu, true);
+		}
+	}
+
+	return ret;
+}
+
+
+/*
  * Performance Counters:
  */
 
@@ -676,6 +750,8 @@ msm_gpu_create_address_space(struct msm_gpu *gpu, struct platform_device *pdev,
 		return ERR_CAST(aspace);
 	}
 
+	msm_mmu_set_fault_handler(aspace->mmu, gpu, msm_gpu_fault);
+
 	ret = aspace->mmu->funcs->attach(aspace->mmu, NULL, 0);
 	if (ret) {
 		msm_gem_address_space_put(aspace);
@@ -703,7 +779,7 @@ int msm_gpu_init(struct drm_device *drm, struct platform_device *pdev,
 	INIT_LIST_HEAD(&gpu->active_list);
 	INIT_WORK(&gpu->retire_work, retire_worker);
 	INIT_WORK(&gpu->recover_work, recover_worker);
-
+	INIT_WORK(&gpu->fault_work, fault_worker);
 
 	setup_timer(&gpu->hangcheck_timer, hangcheck_handler,
 			(unsigned long)gpu);

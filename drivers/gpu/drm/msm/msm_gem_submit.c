@@ -51,6 +51,7 @@ static struct msm_gem_submit *submit_create(struct drm_device *dev,
 	submit->pid = get_pid(task_pid(current));
 	submit->cmd = (void *)&submit->bos[nr_bos];
 	submit->queue = queue;
+	submit->dumped = false;
 
 	/* initially, until copy_from_user() and bo lookup succeeds: */
 	submit->nr_bos = 0;

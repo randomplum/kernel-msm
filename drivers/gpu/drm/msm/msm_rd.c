@@ -340,6 +340,11 @@ void msm_rd_dump_submit(struct msm_rd_state *rd, struct msm_gem_submit *submit,
 	if (!rd->open)
 		return;
 
+	if (submit->dumped)
+		return;
+
+	submit->dumped = true;
+
 	/* writing into fifo is serialized by caller, and
 	 * rd->read_lock is used to serialize the reads
 	 */

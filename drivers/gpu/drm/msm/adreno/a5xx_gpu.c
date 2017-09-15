@@ -827,9 +827,8 @@ bool a5xx_idle(struct msm_gpu *gpu, struct msm_ringbuffer *ring)
 	return true;
 }
 
-static int a5xx_fault_handler(void *arg, unsigned long iova, int flags)
+static int a5xx_fault(struct msm_gpu *gpu, unsigned long iova, int flags)
 {
-	struct msm_gpu *gpu = arg;
 	pr_warn_ratelimited("*** gpu fault: iova=%08lx, flags=%d (%u,%u,%u,%u)\n",
 			iova, flags,
 			gpu_read(gpu, REG_A5XX_CP_SCRATCH_REG(4)),
@@ -1156,6 +1155,7 @@ static const struct adreno_gpu_funcs funcs = {
 		.pm_resume = a5xx_pm_resume,
 		.recover = a5xx_recover,
 		.submit = a5xx_submit,
+		.fault = a5xx_fault,
 		.flush = a5xx_flush,
 		.active_ring = a5xx_active_ring,
 		.irq = a5xx_irq,
@@ -1198,9 +1198,6 @@ struct msm_gpu *a5xx_gpu_init(struct drm_device *dev)
 		a5xx_destroy(&(a5xx_gpu->base.base));
 		return ERR_PTR(ret);
 	}
-
-	if (gpu->aspace)
-		msm_mmu_set_fault_handler(gpu->aspace->mmu, gpu, a5xx_fault_handler);
 
 	/* Set up the preemption specific bits and pieces for each ringbuffer */
 	a5xx_preempt_init(gpu);
