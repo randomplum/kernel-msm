@@ -178,6 +178,7 @@ enum arm_smmu_s2cr_privcfg {
 #define ARM_SMMU_CB_ATSR		0x8f0
 
 #define SCTLR_S1_ASIDPNE		(1 << 12)
+#define SCTLR_HUPCF			(1 << 8)
 #define SCTLR_CFCFG			(1 << 7)
 #define SCTLR_CFIE			(1 << 6)
 #define SCTLR_CFRE			(1 << 5)
