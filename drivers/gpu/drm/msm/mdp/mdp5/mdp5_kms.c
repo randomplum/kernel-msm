@@ -22,6 +22,8 @@
 #include "msm_gem.h"
 #include "msm_mmu.h"
 #include "mdp5_kms.h"
+#include <linux/interconnect-consumer.h>
+#include <linux/interconnect/qcom.h>
 
 static const char *iommu_ports[] = {
 		"mdp_0",
@@ -1001,6 +1003,16 @@ static const struct component_ops mdp5_ops = {
 
 static int mdp5_dev_probe(struct platform_device *pdev)
 {
+	struct interconnect_path *path = interconnect_get(MASTER_MDP_PORT0,
+							  SLAVE_EBI_CH0);
+	struct interconnect_creq creq = {
+		.avg_bw = 0,
+		.peak_bw = 6400000,
+	};
+
+	if (!IS_ERR(path))
+		interconnect_set(path, &creq);
+
 	DBG("");
 	return component_add(&pdev->dev, &mdp5_ops);
 }
