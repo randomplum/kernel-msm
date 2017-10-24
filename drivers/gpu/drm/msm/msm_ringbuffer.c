@@ -55,7 +55,6 @@ struct msm_ringbuffer *msm_ringbuffer_new(struct msm_gpu *gpu, int id,
 
 	snprintf(name, sizeof(name), "gpu-ring-%d", ring->id);
 
-	/* FIXME: need struct drm_device */
 	ring->fctx = msm_fence_context_alloc(gpu->dev, name);
 
 	return ring;
