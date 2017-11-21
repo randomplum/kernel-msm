@@ -420,7 +420,7 @@ EXPORT_SYMBOL_GPL(reservation_object_get_fences_rcu);
  *
  * RETURNS
  * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or
- * greater than zer on success.
+ * greater than zero on success.
  */
 long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
 					 bool wait_all, bool intr,
@@ -483,7 +483,14 @@ retry:
 			goto retry;
 		}
 
-		ret = dma_fence_wait_timeout(fence, intr, ret);
+		/*
+		 * Note that dma_fence_wait_timeout() will return 1 if
+		 * the fence is already signaled, so in the wait_all
+		 * case when we go through the retry loop again, ret
+		 * will be greater than 0 and we don't want this to
+		 * cause _wait_timeout() to block
+		 */
+		ret = dma_fence_wait_timeout(fence, intr, timeout ? ret : 0);
 		dma_fence_put(fence);
 		if (ret > 0 && wait_all && (i + 1 < shared_count))
 			goto retry;
