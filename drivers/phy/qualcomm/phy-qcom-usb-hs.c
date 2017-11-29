@@ -15,6 +15,7 @@
 #include <linux/reset.h>
 #include <linux/extcon.h>
 #include <linux/notifier.h>
+#include <linux/interconnect-consumer.h>
 
 #define ULPI_PWR_CLK_MNG_REG		0x88
 # define ULPI_PWR_OTG_COMP_DISABLE	BIT(0)
@@ -39,6 +40,7 @@ struct qcom_usb_hs_phy {
 	struct reset_control *reset;
 	struct ulpi_seq *init_seq;
 	struct extcon_dev *vbus_edev;
+	struct interconnect_path *path;
 	struct notifier_block vbus_notify;
 };
 
@@ -111,6 +113,10 @@ static int qcom_usb_hs_phy_power_on(struct phy *phy)
 	struct ulpi *ulpi = uphy->ulpi;
 	const struct ulpi_seq *seq;
 	int ret, state;
+	struct interconnect_creq creq = {
+		.avg_bw = 80000,
+		.peak_bw = 6000,
+	};
 
 	ret = clk_prepare_enable(uphy->ref_clk);
 	if (ret)
@@ -154,6 +160,8 @@ static int qcom_usb_hs_phy_power_on(struct phy *phy)
 			goto err_ulpi;
 	}
 
+	interconnect_set(uphy->path, &creq);
+
 	if (uphy->vbus_edev) {
 		state = extcon_get_state(uphy->vbus_edev, EXTCON_USB);
 		/* setup initial state */
@@ -180,6 +188,12 @@ err_sleep:
 static int qcom_usb_hs_phy_power_off(struct phy *phy)
 {
 	struct qcom_usb_hs_phy *uphy = phy_get_drvdata(phy);
+	struct interconnect_creq creq = {
+		.avg_bw = 0,
+		.peak_bw = 0,
+	};
+
+	interconnect_set(uphy->path, &creq);
 
 	regulator_disable(uphy->v3p3);
 	regulator_disable(uphy->v1p8);
@@ -248,6 +262,8 @@ static int qcom_usb_hs_phy_probe(struct ulpi *ulpi)
 			return PTR_ERR(reset);
 		uphy->reset = NULL;
 	}
+
+	uphy->path = interconnect_get("mas_usb_hs", 87, "slv_ebi_ch0", 512);
 
 	uphy->phy = devm_phy_create(&ulpi->dev, ulpi->dev.of_node,
 				    &qcom_usb_hs_phy_ops);
