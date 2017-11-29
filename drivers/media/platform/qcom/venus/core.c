@@ -14,6 +14,8 @@
  */
 #include <linux/clk.h>
 #include <linux/init.h>
+#include <linux/interconnect-consumer.h>
+#include <linux/interconnect/qcom.h>
 #include <linux/ioctl.h>
 #include <linux/list.h>
 #include <linux/module.h>
@@ -171,6 +173,11 @@ static int venus_probe(struct platform_device *pdev)
 	if (IS_ERR(core->base))
 		return PTR_ERR(core->base);
 
+	core->path = interconnect_get(MASTER_VIDEO_P0, SLAVE_EBI_CH0);
+	core->path_mdp0 = interconnect_get(MASTER_MDP_PORT0, SLAVE_EBI_CH0);
+	core->path_mdp1 = interconnect_get(MASTER_MDP_PORT1, SLAVE_EBI_CH0);
+	core->path_gpu = interconnect_get(MASTER_GRAPHICS_3D, SLAVE_EBI_CH0);
+
 	core->irq = platform_get_irq(pdev, 0);
 	if (core->irq < 0)
 		return core->irq;
@@ -275,6 +282,22 @@ static __maybe_unused int venus_runtime_suspend(struct device *dev)
 	struct venus_core *core = dev_get_drvdata(dev);
 	int ret;
 
+	struct interconnect_creq creq = {
+		.avg_bw = 0,
+		.peak_bw = 0,
+	};
+	struct interconnect_creq creq_mdp = {
+		.avg_bw = 0,
+		.peak_bw = 1000,
+	};
+
+	if (!IS_ERR(core->path))
+		interconnect_set(core->path, &creq);
+	if (!IS_ERR(core->path_mdp0))
+		interconnect_set(core->path_mdp0, &creq_mdp);
+	if (!IS_ERR(core->path_mdp1))
+		interconnect_set(core->path_mdp1, &creq_mdp);
+
 	ret = hfi_core_suspend(core);
 
 	venus_clks_disable(core);
@@ -286,6 +309,28 @@ static __maybe_unused int venus_runtime_resume(struct device *dev)
 {
 	struct venus_core *core = dev_get_drvdata(dev);
 	int ret;
+
+	struct interconnect_creq creq = {
+		.avg_bw =   677600,
+		.peak_bw = 1331000,
+	};
+	struct interconnect_creq creq_mdp = {
+		.avg_bw = 0,
+		.peak_bw = 6400000,
+	};
+	struct interconnect_creq creq_gpu = {
+		.avg_bw = 1066000,
+		.peak_bw = 4264000,
+	};
+
+	if (!IS_ERR(core->path))
+		interconnect_set(core->path, &creq);
+	if (!IS_ERR(core->path_mdp0))
+		interconnect_set(core->path_mdp0, &creq_mdp);
+	if (!IS_ERR(core->path_mdp1))
+		interconnect_set(core->path_mdp1, &creq_mdp);
+	if (!IS_ERR(core->path_gpu))
+		interconnect_set(core->path_gpu, &creq_gpu);
 
 	ret = venus_clks_enable(core);
 	if (ret)
