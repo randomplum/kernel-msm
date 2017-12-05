@@ -374,9 +374,6 @@ static int mdp5_plane_atomic_check_with_state(struct drm_crtc_state *crtc_state,
 			new_hwpipe = true;
 
 		if (mdp5_kms->smp) {
-			const struct mdp_format *format =
-				to_mdp_format(msm_framebuffer_format(state->fb));
-
 			blkcfg = mdp5_smp_calculate(mdp5_kms->smp, format,
 					state->src_w >> 16, false);
 
