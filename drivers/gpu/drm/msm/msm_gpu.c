@@ -51,9 +51,26 @@ static void bs_set(struct msm_gpu *gpu, int idx)
 	}
 }
 #else
-static void bs_init(struct msm_gpu *gpu) {}
-static void bs_fini(struct msm_gpu *gpu) {}
-static void bs_set(struct msm_gpu *gpu, int idx) {}
+static void bs_init(struct msm_gpu *gpu) {
+	gpu->path = interconnect_get(MASTER_GRAPHICS_3D, SLAVE_EBI_CH0);
+}
+static void bs_fini(struct msm_gpu *gpu) {
+	if (!IS_ERR(gpu->path))
+		interconnect_put(gpu->path);
+}
+static void bs_set(struct msm_gpu *gpu, int idx) {
+	struct interconnect_creq creq = { 0, 0 };
+
+	if (idx > 0) {
+		creq.peak_bw = 14432000;
+	}
+
+	if (IS_ERR(gpu->path))
+		bs_init(gpu);
+
+	if (!IS_ERR(gpu->path))
+		interconnect_set(gpu->path, &creq);
+}
 #endif
 
 static int enable_pwrrail(struct msm_gpu *gpu)

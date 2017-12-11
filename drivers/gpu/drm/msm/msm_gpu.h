@@ -20,6 +20,8 @@
 
 #include <linux/clk.h>
 #include <linux/regulator/consumer.h>
+#include <linux/interconnect-consumer.h>
+#include <linux/interconnect/qcom.h>
 
 #include "msm_drv.h"
 #include "msm_fence.h"
@@ -118,6 +120,7 @@ struct msm_gpu {
 	struct msm_bus_scale_pdata *bus_scale_table;
 	uint32_t bsc;
 #endif
+	struct interconnect_path *path;
 
 	/* Hang and Inactivity Detection:
 	 */
