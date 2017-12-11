@@ -241,6 +241,9 @@ struct ufs_qcom_host {
 	/* Bitmask for enabling debug prints */
 	u32 dbg_print_en;
 	struct ufs_qcom_testbus testbus;
+
+	struct interconnect_path *path;
+	struct interconnect_path *path_cfg;
 };
 
 static inline u32

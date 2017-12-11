@@ -17,6 +17,8 @@
 #include <linux/platform_device.h>
 #include <linux/phy/phy.h>
 #include <linux/phy/phy-qcom-ufs.h>
+#include <linux/interconnect-consumer.h>
+#include <linux/interconnect/qcom.h>
 
 #include "ufshcd.h"
 #include "ufshcd-pltfrm.h"
@@ -877,6 +879,17 @@ out:
 	return err;
 }
 #else /* CONFIG_MSM_BUS_SCALING */
+static int ufs_qcom_bus_register(struct ufs_qcom_host *host)
+{
+	host->path = interconnect_get(MASTER_UFS, SLAVE_EBI_CH0);
+	host->path_cfg = interconnect_get(MASTER_AMPSS_M0, SLAVE_UFS_CFG);
+
+	host->bus_vote.min_bw_vote = 0;
+	host->bus_vote.max_bw_vote = INT_MAX;
+
+	return 0;
+}
+
 static int ufs_qcom_update_bus_bw_vote(struct ufs_qcom_host *host)
 {
 	return 0;
@@ -884,11 +897,31 @@ static int ufs_qcom_update_bus_bw_vote(struct ufs_qcom_host *host)
 
 static int ufs_qcom_set_bus_vote(struct ufs_qcom_host *host, int vote)
 {
-	return 0;
-}
+	struct interconnect_creq creq = { 0, 0 };
+	struct interconnect_creq creq_cfg = { 0, 0 };
 
-static int ufs_qcom_bus_register(struct ufs_qcom_host *host)
-{
+	if (vote == host->bus_vote.saved_vote)
+		return 0;
+
+	if (vote > 0) {
+		creq.avg_bw = 4096000;
+		creq.peak_bw = 0;
+
+		creq_cfg.avg_bw = 1000;
+		creq_cfg.peak_bw = 0;
+	}
+
+	if (IS_ERR(host->path) || IS_ERR(host->path_cfg))
+		ufs_qcom_bus_register(host);
+
+	if (!IS_ERR(host->path))
+		interconnect_set(host->path, &creq);
+
+	if (!IS_ERR(host->path_cfg))
+		interconnect_set(host->path, &creq_cfg);
+
+	host->bus_vote.saved_vote = vote;
+
 	return 0;
 }
 #endif /* CONFIG_MSM_BUS_SCALING */
