@@ -14,6 +14,8 @@
 #include <linux/clk.h>
 #include <linux/err.h>
 #include <linux/hw_random.h>
+#include <linux/interconnect-consumer.h>
+#include <linux/interconnect/qcom.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
@@ -39,6 +41,7 @@ struct msm_rng {
 	void __iomem *base;
 	struct clk *clk;
 	struct hwrng hwrng;
+	struct interconnect_path *path;
 };
 
 #define to_msm_rng(p)	container_of(p, struct msm_rng, hwrng)
@@ -86,6 +89,8 @@ static int msm_rng_read(struct hwrng *hwrng, void *data, size_t max, bool wait)
 	size_t maxsize;
 	int ret;
 	u32 val;
+	struct interconnect_creq creq_on = { 0, 800 };
+	struct interconnect_creq creq_off = { 0, 0 };
 
 	/* calculate max size bytes to transfer back to caller */
 	maxsize = min_t(size_t, MAX_HW_FIFO_SIZE, max);
@@ -93,6 +98,12 @@ static int msm_rng_read(struct hwrng *hwrng, void *data, size_t max, bool wait)
 	ret = clk_prepare_enable(rng->clk);
 	if (ret)
 		return ret;
+
+	if (IS_ERR(rng->path))
+		rng->path = interconnect_get(MASTER_AMPSS_M0, SLAVE_PRNG);
+
+	if (!IS_ERR(rng->path))
+		interconnect_set(rng->path, &creq_on);
 
 	/* read random data from hardware */
 	do {
@@ -111,6 +122,9 @@ static int msm_rng_read(struct hwrng *hwrng, void *data, size_t max, bool wait)
 		if ((maxsize - currsize) < WORD_SZ)
 			break;
 	} while (currsize < maxsize);
+
+	if (!IS_ERR(rng->path))
+		interconnect_set(rng->path, &creq_off);
 
 	clk_disable_unprepare(rng->clk);
 
@@ -147,6 +161,8 @@ static int msm_rng_probe(struct platform_device *pdev)
 	rng->clk = devm_clk_get(&pdev->dev, "core");
 	if (IS_ERR(rng->clk))
 		return PTR_ERR(rng->clk);
+
+	rng->path = interconnect_get(MASTER_AMPSS_M0, SLAVE_PRNG);
 
 	rng->hwrng.name = KBUILD_MODNAME,
 	rng->hwrng.init = msm_rng_init,
