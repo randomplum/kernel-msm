@@ -53,6 +53,7 @@ static struct msm_gem_submit *submit_create(struct drm_device *dev,
 	submit->queue = queue;
 	submit->ring = gpu->rb[queue->prio];
 	submit->dumped = false;
+	submit->in_rb = false;
 
 	/* initially, until copy_from_user() and bo lookup succeeds: */
 	submit->nr_bos = 0;
@@ -431,6 +432,12 @@ int msm_ioctl_gem_submit(struct drm_device *dev, void *data,
 	if (MSM_PIPE_FLAGS(args->flags) & ~MSM_SUBMIT_FLAGS)
 		return -EINVAL;
 
+	if (args->flags & MSM_SUBMIT_SUDO) {
+		if (!IS_ENABLED(CONFIG_DRM_MSM_GPU_SUDO) ||
+		    !capable(CAP_SYS_ADMIN))
+			return -EINVAL;
+	}
+
 	queue = msm_submitqueue_get(ctx, args->queueid);
 	if (!queue)
 		return -ENOENT;
@@ -470,6 +477,11 @@ int msm_ioctl_gem_submit(struct drm_device *dev, void *data,
 	if (!submit) {
 		ret = -ENOMEM;
 		goto out_unlock;
+	}
+
+	if (args->flags & MSM_SUBMIT_SUDO) {
+		submit->in_rb = true;
+		submit->ring = gpu->funcs->active_ring(gpu);
 	}
 
 	ret = submit_lookup_objects(submit, args, file);
