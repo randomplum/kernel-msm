@@ -20,6 +20,8 @@
 #include <linux/mmc/mmc.h>
 #include <linux/pm_runtime.h>
 #include <linux/slab.h>
+#include <linux/interconnect-consumer.h>
+#include <linux/interconnect/qcom.h>
 #include <linux/iopoll.h>
 
 #include "sdhci-pltfm.h"
@@ -138,6 +140,7 @@ struct sdhci_msm_host {
 	bool calibration_done;
 	u8 saved_tuning_phase;
 	bool use_cdclp533;
+	struct interconnect_path *path;
 };
 
 static unsigned int msm_get_clock_rate_for_bus_mode(struct sdhci_host *host,
@@ -1092,6 +1095,48 @@ out:
 	__sdhci_msm_set_clock(host, clock);
 }
 
+static struct interconnect_path *sdhci_msm_init_interconnect(struct sdhci_msm_host *msm_host)
+{
+	struct device_node *np = msm_host->pdev->dev.of_node;
+	const char *name;
+
+	name = of_node_full_name(np);
+
+	if (strstr(name, "sdhci@07824000") != NULL)
+		return interconnect_get(MASTER_SDCC_1, SLAVE_EBI_CH0);
+
+	if (strstr(name, "sdhci@07864000") != NULL)
+		return interconnect_get(MASTER_SDCC_2, SLAVE_EBI_CH0);
+
+	return ERR_PTR(-ENOENT);
+}
+
+static int sdhci_msm_set_interconnect(struct sdhci_msm_host *msm_host,
+				      unsigned int rate)
+{
+	struct interconnect_creq creq = {
+		.avg_bw = 0,
+		.peak_bw = 0,
+	};
+
+	if (rate == INT_MAX) {
+		creq.avg_bw = 2048000;
+		creq.peak_bw = 4096000;
+	}
+
+	if (!IS_ERR(msm_host->path))
+		interconnect_set(msm_host->path, &creq);
+
+	return 0;
+}
+
+static void sdhci_msm_deinit_interconnect(struct sdhci_msm_host *msm_host)
+{
+	if (!IS_ERR(msm_host->path))
+			interconnect_put(msm_host->path);
+}
+
+
 static const struct of_device_id sdhci_msm_dt_match[] = {
 	{ .compatible = "qcom,sdhci-msm-v4" },
 	{},
@@ -1197,6 +1242,9 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 	ret = clk_prepare_enable(msm_host->clk);
 	if (ret)
 		goto pclk_disable;
+
+	msm_host->path = sdhci_msm_init_interconnect(msm_host);
+	sdhci_msm_set_interconnect(msm_host, INT_MAX);
 
 	core_memres = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	msm_host->core_mem = devm_ioremap_resource(&pdev->dev, core_memres);
@@ -1315,6 +1363,8 @@ static int sdhci_msm_remove(struct platform_device *pdev)
 	pm_runtime_disable(&pdev->dev);
 	pm_runtime_put_noidle(&pdev->dev);
 
+	sdhci_msm_deinit_interconnect(msm_host);
+
 	clk_disable_unprepare(msm_host->clk);
 	clk_disable_unprepare(msm_host->pclk);
 	if (!IS_ERR(msm_host->bus_clk))
@@ -1332,6 +1382,7 @@ static int sdhci_msm_runtime_suspend(struct device *dev)
 
 	clk_disable_unprepare(msm_host->clk);
 	clk_disable_unprepare(msm_host->pclk);
+	sdhci_msm_set_interconnect(msm_host, 0);
 
 	return 0;
 }
@@ -1354,6 +1405,8 @@ static int sdhci_msm_runtime_resume(struct device *dev)
 		clk_disable_unprepare(msm_host->clk);
 		return ret;
 	}
+
+	sdhci_msm_set_interconnect(msm_host, INT_MAX);
 
 	return 0;
 }

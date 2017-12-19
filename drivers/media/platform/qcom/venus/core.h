@@ -120,6 +120,10 @@ struct venus_core {
 	void *priv;
 	const struct hfi_ops *ops;
 	struct delayed_work work;
+	struct interconnect_path *path;
+	struct interconnect_path *path_mdp0;
+	struct interconnect_path *path_mdp1;
+	struct interconnect_path *path_gpu;
 };
 
 struct vdec_controls {
