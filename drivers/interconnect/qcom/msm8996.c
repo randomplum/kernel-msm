@@ -254,7 +254,7 @@ DEFINE_QNODE(mas_usb3, MASTER_USB3, 3, 1, 8, 1, ICBID_MASTER_USB3_0, 0, QCOM_QOS
 DEFINE_QNODE(mas_ipa, MASTER_IPA, 3, 1, 8, 1, ICBID_MASTER_IPA, 0, QCOM_QOS_MODE_FIXED, 1, &slv_a2noc_snoc.node);
 DEFINE_QNODE(mas_ufs, MASTER_UFS, 2, 1, 8, 1, ICBID_MASTER_UFS, 0, QCOM_QOS_MODE_FIXED, 1, &slv_a2noc_snoc.node);
 DEFINE_QNODE(mas_apps_proc, MASTER_AMPSS_M0, 0, 2, 8, 1, ICBID_MASTER_APPSS_PROC, 0, QCOM_QOS_MODE_FIXED, 3, &slv_bimc_snoc_1.node, &slv_ebi.node, &slv_bimc_snoc_0.node);
-DEFINE_QNODE(mas_oxili, MASTER_GRAPHICS_3D, 1, 2, 8, 1, ICBID_MASTER_GFX3D, 0, QCOM_QOS_MODE_BYPASS, 0, 0);
+DEFINE_QNODE(mas_oxili, MASTER_GRAPHICS_3D, 1, 2, 8, 1, ICBID_MASTER_GFX3D, 0, QCOM_QOS_MODE_BYPASS, 4, &slv_bimc_snoc_1.node, &slv_hmss_l3.node, &slv_ebi.node, &slv_bimc_snoc_0.node);
 DEFINE_QNODE(mas_mnoc_bimc, MNOC_BIMC_MAS, 2, 2, 8, 1, ICBID_MASTER_MNOC_BIMC, 0, QCOM_QOS_MODE_BYPASS, 4, &slv_bimc_snoc_1.node, &slv_hmss_l3.node, &slv_ebi.node, &slv_bimc_snoc_0.node);
 DEFINE_QNODE(mas_snoc_bimc, SNOC_BIMC_MAS, 2, 2, 8, 0, ICBID_MASTER_SNOC_BIMC, 0, QCOM_QOS_MODE_BYPASS, 2, &slv_hmss_l3.node, &slv_ebi.node);
 DEFINE_QNODE(mas_snoc_cnoc, SNOC_CNOC_MAS, 2, 1, 8, 0, ICBID_MASTER_SNOC_CNOC, 0, QCOM_QOS_MODE_BYPASS, 0, 0);
