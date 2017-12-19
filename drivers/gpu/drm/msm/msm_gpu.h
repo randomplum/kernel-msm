@@ -130,7 +130,7 @@ struct msm_gpu {
 	struct msm_bus_scale_pdata *bus_scale_table;
 	uint32_t bsc;
 #endif
-	struct interconnect_path *path;
+	struct interconnect_path *path[2];
 
 	/* Hang and Inactivity Detection:
 	 */

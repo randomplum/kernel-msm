@@ -54,11 +54,14 @@ static void bs_set(struct msm_gpu *gpu, int idx)
 }
 #else
 static void bs_init(struct msm_gpu *gpu) {
-	gpu->path = interconnect_get(MASTER_GRAPHICS_3D, SLAVE_EBI_CH0);
+	gpu->path[0] = interconnect_get(MASTER_GRAPHICS_3D, SLAVE_EBI_CH0);
+	gpu->path[1] = interconnect_get(MASTER_GRAPHICS_3D, SLAVE_EBI_CH0);
 }
 static void bs_fini(struct msm_gpu *gpu) {
-	if (!IS_ERR(gpu->path))
-		interconnect_put(gpu->path);
+	if (!IS_ERR(gpu->path[1]))
+		interconnect_put(gpu->path[1]);
+	if (!IS_ERR(gpu->path[0]))
+		interconnect_put(gpu->path[0]);
 }
 static void bs_set(struct msm_gpu *gpu, int idx) {
 	struct interconnect_creq creq = { 0, 0 };
@@ -67,11 +70,13 @@ static void bs_set(struct msm_gpu *gpu, int idx) {
 		creq.peak_bw = 14432000;
 	}
 
-	if (IS_ERR(gpu->path))
+	if (IS_ERR(gpu->path[0]))
 		bs_init(gpu);
 
-	if (!IS_ERR(gpu->path))
-		interconnect_set(gpu->path, &creq);
+	if (!IS_ERR(gpu->path[0]))
+		interconnect_set(gpu->path[0], &creq);
+	if (!IS_ERR(gpu->path[1]))
+		interconnect_set(gpu->path[1], &creq);
 }
 #endif
 
@@ -160,8 +165,8 @@ static int enable_axi(struct msm_gpu *gpu)
 {
 	if (gpu->ebi1_clk)
 		clk_prepare_enable(gpu->ebi1_clk);
-	if (gpu->bus_freq)
-		bs_set(gpu, gpu->bus_freq);
+//	if (gpu->bus_freq)
+		bs_set(gpu, 1);
 	return 0;
 }
 
@@ -169,7 +174,7 @@ static int disable_axi(struct msm_gpu *gpu)
 {
 	if (gpu->ebi1_clk)
 		clk_disable_unprepare(gpu->ebi1_clk);
-	if (gpu->bus_freq)
+//	if (gpu->bus_freq)
 		bs_set(gpu, 0);
 	return 0;
 }
