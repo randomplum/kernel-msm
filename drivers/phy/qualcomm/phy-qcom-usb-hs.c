@@ -263,7 +263,7 @@ static int qcom_usb_hs_phy_probe(struct ulpi *ulpi)
 		uphy->reset = NULL;
 	}
 
-	uphy->path = interconnect_get("mas_usb_hs", 87, "slv_ebi_ch0", 512);
+	uphy->path = interconnect_get(87, 512);
 
 	uphy->phy = devm_phy_create(&ulpi->dev, ulpi->dev.of_node,
 				    &qcom_usb_hs_phy_ops);
