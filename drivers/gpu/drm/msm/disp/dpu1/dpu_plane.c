@@ -1211,7 +1211,6 @@ static int dpu_plane_atomic_check(struct drm_plane *plane,
 
 	ret = dpu_plane_sspp_atomic_check(plane, state);
 
-exit:
 	return ret;
 }
 

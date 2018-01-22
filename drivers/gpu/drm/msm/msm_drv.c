@@ -526,7 +526,7 @@ static int msm_drm_init(struct device *dev, struct drm_driver *drv)
 
 	ret = msm_init_vram(ddev);
 	if (ret)
-		goto fail;
+		goto init_vram_fail;
 
 	/* Bind all our sub-components: */
 	ret = msm_component_bind_all(dev, ddev);
@@ -720,6 +720,9 @@ fail:
 	msm_drm_uninit(dev);
 	return ret;
 bind_fail:
+	/* TODO: undo msm_init_vram()? */
+init_vram_fail:
+	msm_gem_shrinker_cleanup(ddev);
 #ifdef CONFIG_DRM_MSM_DPU
 	dpu_dbg_destroy();
 dbg_init_fail:
@@ -1531,6 +1534,30 @@ static int add_display_components(struct device *dev,
 	return ret;
 }
 
+struct msm_gem_address_space *
+msm_gem_smmu_address_space_get(struct drm_device *dev,
+		unsigned int domain)
+{
+	struct msm_drm_private *priv = NULL;
+	struct msm_kms *kms;
+	const struct msm_kms_funcs *funcs;
+
+	if ((!dev) || (!dev->dev_private))
+		return NULL;
+
+	priv = dev->dev_private;
+	kms = priv->kms;
+	if (!kms)
+		return NULL;
+
+	funcs = kms->funcs;
+
+	if ((!funcs) || (!funcs->get_address_space))
+		return NULL;
+
+	return funcs->get_address_space(priv->kms, domain);
+}
+
 /*
  * We don't know what's the best binding to link the gpu with the drm device.
  * Fow now, we just hunt for all the possible gpus that we support, and add them
@@ -1588,8 +1615,8 @@ static const struct component_master_ops msm_drm_ops = {
 
 static int msm_pdev_probe(struct platform_device *pdev)
 {
-	int ret;
 	struct component_match *match = NULL;
+	int ret;
 
 	ret = add_display_components(&pdev->dev, &match);
 	if (ret)
@@ -1598,6 +1625,11 @@ static int msm_pdev_probe(struct platform_device *pdev)
 	ret = add_gpu_components(&pdev->dev, &match);
 	if (ret)
 		return ret;
+
+	if (match == NULL) {
+		dev_warn(&pdev->dev, "No components matched\n");
+		return -EINVAL;
+	}
 
 	pdev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
 
