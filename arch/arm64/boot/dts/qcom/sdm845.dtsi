@@ -1847,3 +1847,4 @@
  * until we have patches to do this right.
  */
 #include "sdm845-regulator.dtsi"
+#include "sdm845-bus.dtsi"
