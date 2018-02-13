@@ -1,0 +1,21 @@
+menu "Qualcomm technologies inc. MSM specific device drivers"
+	depends on ARCH_QCOM
+
+config MSM_EXT_DISPLAY
+	bool "MSM External Display Driver"
+	help
+	  Enabling this option adds MSM External Display Driver.
+	  External Display driver was added to support the communication
+	  between external display driver and its counterparts.
+	  This should be enabled to support audio & video over HDMI or
+	  DP for hot pluggable sink devices.
+
+config QCOM_GENI_SE
+	tristate "QCOM GENI Serial Engine Driver"
+	help
+	  This module is used to interact with GENI based Serial Engines on
+	  Qualcomm Technologies, Inc. Universal Peripheral(QUPv3). This
+	  module is used to configure and read the configuration from the
+	  Serial Engines.
+
+endmenu
