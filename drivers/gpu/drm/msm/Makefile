@@ -53,6 +53,8 @@ msm-y := \
 	disp/dpu1/dpu_core_perf.o \
 	disp/dpu1/dpu_crtc.o \
 	disp/dpu1/dpu_encoder.o \
+	disp/dpu1/dpu_encoder_phys_cmd.o \
+	disp/dpu1/dpu_encoder_phys_vid.o \
 	disp/dpu1/dpu_fence.o \
 	disp/dpu1/dpu_formats.o \
 	disp/dpu1/dpu_hw_ad4.o \
