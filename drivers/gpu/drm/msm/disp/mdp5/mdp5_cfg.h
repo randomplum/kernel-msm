@@ -100,6 +100,7 @@ struct mdp5_cfg_hw {
 	struct mdp5_sub_block pp;
 	struct mdp5_sub_block dsc;
 	struct mdp5_sub_block cdm;
+	struct mdp5_sub_block wb;
 	struct mdp5_intf_block intf;
 
 	uint32_t max_clk;

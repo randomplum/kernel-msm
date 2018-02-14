@@ -657,6 +657,7 @@ struct msm_kms *mdp5_kms_init(struct drm_device *dev)
 	pm_runtime_get_sync(&pdev->dev);
 	for (i = 0; i < MDP5_INTF_NUM_MAX; i++) {
 		if (mdp5_cfg_intf_is_virtual(config->hw->intf.connect[i]) ||
+		    (config->hw->intf.connect[i] == INTF_DISABLED) ||
 		    !config->hw->intf.base[i])
 			continue;
 		mdp5_write(mdp5_kms, REG_MDP5_INTF_TIMING_ENGINE_EN(i), 0);

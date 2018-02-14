@@ -176,6 +176,10 @@ const struct mdp5_cfg_hw msm8x74v2_config = {
 		.count = 3,
 		.base = { 0x12c00, 0x12d00, 0x12e00 },
 	},
+	.wb = {
+		.count = 5,
+		.base = { 0x11000, 0x13000, 0x15000, 0x17000, 0x19000 },
+	},
 	.intf = {
 		.base = { 0x12400, 0x12600, 0x12800, 0x12a00 },
 		.connect = {
@@ -271,6 +275,10 @@ const struct mdp5_cfg_hw apq8084_config = {
 		.count = 4,
 		.base = { 0x12e00, 0x12f00, 0x13000, 0x13100 },
 	},
+	.wb = {
+		.count = 5,
+		.base = { 0x11000, 0x11400, 0x11800, 0x11c00, 0x12000 },
+	},
 	.intf = {
 		.base = { 0x12400, 0x12600, 0x12800, 0x12a00, 0x12c00 },
 		.connect = {
@@ -300,8 +308,8 @@ const struct mdp5_cfg_hw msm8x16_config = {
 		},
 	},
 	.ctl = {
-		.count = 5,
-		.base = { 0x01000, 0x01200, 0x01400, 0x01600, 0x01800 },
+		.count = 3,
+		.base = { 0x01000, 0x01200, 0x01400 },
 		.flush_hw_mask = 0x4003ffff,
 	},
 	.pipe_vig = {
@@ -324,7 +332,7 @@ const struct mdp5_cfg_hw msm8x16_config = {
 	},
 	.lm = {
 		.count = 2, /* LM0 and LM3 */
-		.base = { 0x44000, 0x47000 },
+		.base = { [0] = 0x44000, [3] = 0x47000 },
 		.instances = {
 				{ .id = 0, .pp = 0, .dspp = 0,
 				  .caps = MDP_LM_CAP_DISPLAY, },
@@ -338,12 +346,14 @@ const struct mdp5_cfg_hw msm8x16_config = {
 	.dspp = {
 		.count = 1,
 		.base = { 0x54000 },
-
+	},
+	.wb = {
+		.count = 3,
+		.base = { 0x64000, 0x64800, 0x65000 },
 	},
 	.intf = {
-		.base = { 0x00000, 0x6a800 },
+		.base = { 0x6a000, 0x6a800, 0x6b000, 0x6b800 },
 		.connect = {
-			[0] = INTF_DISABLED,
 			[1] = INTF_DSI,
 		},
 	},
