@@ -50,6 +50,7 @@ struct drm_writeback_connector {
 	 */
 	struct list_head job_queue;
 };
+#define to_wb_connector(x) container_of(x, struct drm_writeback_connector, base)
 
 struct drm_writeback_job {
 	/**
