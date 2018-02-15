@@ -117,6 +117,10 @@ static void mdp5_prepare_commit(struct msm_kms *kms, struct drm_atomic_state *st
 		mdp5_smp_prepare_commit(mdp5_kms->smp, &mdp5_kms->state->smp);
 }
 
+static void mdp5_commit(struct msm_kms *kms, struct drm_atomic_state *state)
+{
+}
+
 static void mdp5_complete_commit(struct msm_kms *kms, struct drm_atomic_state *state)
 {
 	struct mdp5_kms *mdp5_kms = to_mdp5_kms(to_mdp_kms(kms));
@@ -231,6 +235,7 @@ static const struct mdp_kms_funcs kms_funcs = {
 		.disable_vblank  = mdp5_disable_vblank,
 		.swap_state      = mdp5_swap_state,
 		.prepare_commit  = mdp5_prepare_commit,
+		.commit          = mdp5_commit,
 		.complete_commit = mdp5_complete_commit,
 		.wait_for_crtc_commit_done = mdp5_wait_for_crtc_commit_done,
 		.get_format      = mdp_get_format,

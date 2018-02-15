@@ -118,6 +118,10 @@ static void mdp4_prepare_commit(struct msm_kms *kms, struct drm_atomic_state *st
 		drm_crtc_vblank_get(crtc);
 }
 
+static void mdp4_commit(struct msm_kms *kms, struct drm_atomic_state *state)
+{
+}
+
 static void mdp4_complete_commit(struct msm_kms *kms, struct drm_atomic_state *state)
 {
 	struct mdp4_kms *mdp4_kms = to_mdp4_kms(to_mdp_kms(kms));
@@ -188,6 +192,7 @@ static const struct mdp_kms_funcs kms_funcs = {
 		.enable_vblank   = mdp4_enable_vblank,
 		.disable_vblank  = mdp4_disable_vblank,
 		.prepare_commit  = mdp4_prepare_commit,
+		.commit          = mdp4_commit,
 		.complete_commit = mdp4_complete_commit,
 		.wait_for_crtc_commit_done = mdp4_wait_for_crtc_commit_done,
 		.get_format      = mdp_get_format,

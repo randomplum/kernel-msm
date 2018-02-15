@@ -117,6 +117,8 @@ static void complete_commit(struct msm_commit *c, bool async)
 
 	drm_atomic_helper_commit_modeset_enables(dev, state);
 
+	kms->funcs->commit(kms, state);
+
 	/* NOTE: _wait_for_vblanks() only waits for vblank on
 	 * enabled CRTCs.  So we end up faulting when disabling
 	 * due to (potentially) unref'ing the outgoing fb's
