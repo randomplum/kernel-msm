@@ -484,7 +484,11 @@ static void mdp5_crtc_atomic_enable(struct drm_crtc *crtc,
 	}
 
 	/* Restore vblank irq handling after power is enabled */
-	drm_crtc_vblank_on(crtc);
+// TODO we can't ->get_scanout_pos() for wb (since virtual intf)..
+// perhaps drm core should be clever enough not to drm_reset_vblank_timestamp()
+// for virtual encoders / writeback?
+	if (mdp5_cstate->pipeline.intf->type != INTF_WB)
+		drm_crtc_vblank_on(crtc);
 
 	mdp5_crtc_mode_set_nofb(crtc);
 
@@ -518,7 +522,11 @@ int mdp5_crtc_setup_pipeline(struct drm_crtc *crtc,
 		u32 caps;
 		int ret;
 
-		caps = MDP_LM_CAP_DISPLAY;
+		if (pipeline->intf->type == INTF_WB)
+			caps = MDP_LM_CAP_WB;
+		else
+			caps = MDP_LM_CAP_DISPLAY;
+
 		if (need_right_mixer)
 			caps |= MDP_LM_CAP_PAIR;
 
@@ -545,6 +553,7 @@ int mdp5_crtc_setup_pipeline(struct drm_crtc *crtc,
 	mdp5_cstate->err_irqmask = intf2err(intf->num);
 	mdp5_cstate->vblank_irqmask = intf2vblank(pipeline->mixer, intf);
 
+// XXX should we be treating WB as cmd_mode??
 	if ((intf->type == INTF_DSI) &&
 	    (intf->mode == MDP5_INTF_DSI_MODE_COMMAND)) {
 		mdp5_cstate->pp_done_irqmask = lm2ppdone(pipeline->mixer);
@@ -639,8 +648,12 @@ static int mdp5_crtc_atomic_check(struct drm_crtc *crtc,
 	}
 
 	/* bail out early if there aren't any planes */
-	if (!cnt)
-		return 0;
+	if (!cnt) {
+		if (!state->active)
+			return 0;
+		dev_err(dev->dev, "%s has no planes!\n", crtc->name);
+		return -EINVAL;
+	}
 
 	hw_cfg = mdp5_cfg_get_hw_config(mdp5_kms->cfg);
 
@@ -1160,7 +1173,7 @@ void mdp5_crtc_wait_for_commit_done(struct drm_crtc *crtc)
 
 	if (mdp5_cstate->cmd_mode)
 		mdp5_crtc_wait_for_pp_done(crtc);
-	else
+	else if (mdp5_cstate->pipeline.intf->type != INTF_WB)
 		mdp5_crtc_wait_for_flush_done(crtc);
 }
 

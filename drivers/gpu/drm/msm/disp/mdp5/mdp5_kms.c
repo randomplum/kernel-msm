@@ -119,6 +119,17 @@ static void mdp5_prepare_commit(struct msm_kms *kms, struct drm_atomic_state *st
 
 static void mdp5_commit(struct msm_kms *kms, struct drm_atomic_state *state)
 {
+	struct drm_connector *connector;
+	struct drm_connector_state *conn_state;
+	unsigned i;
+
+	for_each_new_connector_in_state (state, connector, conn_state, i) {
+		if (conn_state->writeback_job && conn_state->writeback_job->fb) {
+			WARN_ON(connector->connector_type !=
+				DRM_MODE_CONNECTOR_WRITEBACK);
+			mdp5_wb_atomic_commit(connector);
+		}
+	}
 }
 
 static void mdp5_complete_commit(struct msm_kms *kms, struct drm_atomic_state *state)
@@ -432,7 +443,8 @@ static int modeset_init(struct mdp5_kms *mdp5_kms)
 	 * the MDP5 interfaces) than the number of layer mixers present in HW,
 	 * but let's be safe here anyway
 	 */
-	num_crtcs = min(priv->num_encoders, mdp5_kms->num_hwmixers);
+	num_crtcs = min(priv->num_encoders + hw_cfg->wb.count,
+			mdp5_kms->num_hwmixers);
 
 	/*
 	 * Construct planes equaling the number of hw pipes, and CRTCs for the
@@ -485,6 +497,32 @@ static int modeset_init(struct mdp5_kms *mdp5_kms)
 		struct drm_encoder *encoder = priv->encoders[i];
 
 		encoder->possible_crtcs = (1 << priv->num_crtcs) - 1;
+	}
+
+	/*
+	 * Lastly, construct writeback connectors.
+	 */
+	for (i = 0; i < hw_cfg->wb.count; i++) {
+		struct drm_writeback_connector *wb_conn;
+		struct mdp5_ctl *ctl;
+
+		ctl = mdp5_ctlm_request(mdp5_kms->ctlm, -1);
+		if (!ctl) {
+			dev_err(dev->dev,
+				"failed to allocate ctl for writeback %d\n", i);
+			continue;
+		}
+
+		wb_conn = mdp5_wb_connector_init(dev, ctl, i);
+		if (IS_ERR(wb_conn)) {
+			ret = PTR_ERR(wb_conn);
+			dev_err(dev->dev,
+				"failed to construct writeback connector %d (%d)\n",
+				i, ret);
+			goto fail;
+		}
+
+		wb_conn->encoder.possible_crtcs = (1 << priv->num_crtcs) - 1;
 	}
 
 	return 0;
@@ -560,6 +598,10 @@ static bool mdp5_get_scanoutpos(struct drm_device *dev, unsigned int pipe,
 		return false;
 	}
 
+	/* unsupported for writeback: */
+	if (encoder->encoder_type == DRM_MODE_ENCODER_VIRTUAL)
+		return false;
+
 	vsw = mode->crtc_vsync_end - mode->crtc_vsync_start;
 	vbp = mode->crtc_vtotal - mode->crtc_vsync_end;
 
@@ -613,6 +655,10 @@ static u32 mdp5_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
 
 	encoder = get_encoder_from_crtc(crtc);
 	if (!encoder)
+		return 0;
+
+	/* unsupported for writeback: */
+	if (encoder->encoder_type == DRM_MODE_ENCODER_VIRTUAL)
 		return 0;
 
 	return mdp5_encoder_get_framecount(encoder);

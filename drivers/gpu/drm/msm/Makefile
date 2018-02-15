@@ -45,6 +45,7 @@ msm-y := \
 	disp/mdp5/mdp5_mixer.o \
 	disp/mdp5/mdp5_plane.o \
 	disp/mdp5/mdp5_smp.o \
+	disp/mdp5/mdp5_wb.o \
 	msm_atomic.o \
 	msm_debugfs.o \
 	msm_drv.o \

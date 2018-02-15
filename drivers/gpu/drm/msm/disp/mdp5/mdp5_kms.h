@@ -18,6 +18,8 @@
 #ifndef __MDP5_KMS_H__
 #define __MDP5_KMS_H__
 
+#include <drm/drm_writeback.h>
+
 #include "msm_drv.h"
 #include "msm_kms.h"
 #include "disp/mdp_kms.h"
@@ -251,7 +253,7 @@ static inline uint32_t intf2vblank(struct mdp5_hw_mixer *mixer,
 		return MDP5_IRQ_PING_PONG_0_RD_PTR << mixer->pp;
 
 	if (intf->type == INTF_WB)
-		return MDP5_IRQ_WB_2_DONE;
+		return MDP5_IRQ_WB_2_DONE | MDP5_IRQ_WB_0_DONE | MDP5_IRQ_WB_1_DONE;
 
 	switch (intf->num) {
 	case 0:  return MDP5_IRQ_INTF0_VSYNC;
@@ -329,5 +331,9 @@ static inline int mdp5_cmd_encoder_set_split_display(
 	return -EINVAL;
 }
 #endif
+
+void mdp5_wb_atomic_commit(struct drm_connector *connector);
+struct drm_writeback_connector *mdp5_wb_connector_init(struct drm_device *dev,
+		struct mdp5_ctl *ctl, unsigned wb_id);
 
 #endif /* __MDP5_KMS_H__ */
