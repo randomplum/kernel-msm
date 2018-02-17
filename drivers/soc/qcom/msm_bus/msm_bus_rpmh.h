@@ -83,7 +83,7 @@ struct qos_bcm_type {
 };
 
 struct msm_bus_rsc_device_type {
-	struct rpmh_client *mbox;
+	struct device *dev;
 	struct list_head bcm_clist[VCD_MAX_CNT];
 	int req_state;
 	uint32_t acv[NUM_CTX];
