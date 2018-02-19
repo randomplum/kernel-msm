@@ -344,12 +344,29 @@ const struct mdp5_cfg_hw msm8x16_config = {
 		.max_height = 0xFFFF,
 	},
 	.dspp = {
+/*
+0x01A 65000 MDSS_MDP_WB_0_DST_FORMAT
+0x01A 65800 MDSS_MDP_WB_1_DST_FORMAT
+0x01A 66000 MDSS_MDP_WB_2_DST_FORMAT
+0x01A 66800 MDSS_MDP_WB_3_DST_FORMAT
+0x01A 67000 MDSS_MDP_WB_4_DST_FORMAT
+subtract 0x1000
+
+see https://github.com/dianlujitao/CAF_kernel_msm-3.10/blob/LA.BF64.1.2.2_rb4.10/arch/arm/boot/dts/qcom/msm8916-mdss.dtsi#L66
+
+ */
 		.count = 1,
 		.base = { 0x54000 },
 	},
 	.wb = {
-		.count = 3,
-		.base = { 0x64000, 0x64800, 0x65000 },
+		.count = 1,
+		.base = {
+//			0x64000,   // irqstatus=XXX no irq
+			0x64800,   // irqstatus=0x10 MDP5_IRQ_WB_2_DONE, MODE_WB_2_LINE (other MODE_WB_* values don't seem to work)
+//			0x65000,   // irqstatus=XXX no irq, perhaps wb doesn't exist?..   but get INTF1_UNDER_RUN with wbmode=1
+		},
+//		.count = 3,
+//		.base = { 0x64000, 0x64800, 0x65000 },
 	},
 	.intf = {
 		.base = { 0x6a000, 0x6a800, 0x6b000, 0x6b800 },
