@@ -347,7 +347,7 @@ void mdp5_smp_dump(struct mdp5_smp *smp, struct drm_printer *p)
 	drm_printf(p, "----\t-----\t-----\n");
 
 	if (drm_can_sleep())
-		drm_modeset_lock(&mdp5_kms->glob_state_lock, NULL);
+		drm_modeset_lock(&mdp5_kms->glob_state.lock, NULL);
 
 	global_state = mdp5_get_existing_global_state(mdp5_kms);
 
@@ -377,7 +377,7 @@ void mdp5_smp_dump(struct mdp5_smp *smp, struct drm_printer *p)
 			bitmap_weight(state->state, smp->blk_cnt));
 
 	if (drm_can_sleep())
-		drm_modeset_unlock(&mdp5_kms->glob_state_lock);
+		drm_modeset_unlock(&mdp5_kms->glob_state.lock);
 }
 
 void mdp5_smp_destroy(struct mdp5_smp *smp)

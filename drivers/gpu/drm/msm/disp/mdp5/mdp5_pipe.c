@@ -30,7 +30,7 @@ int mdp5_pipe_assign(struct drm_atomic_state *s, struct drm_plane *plane,
 
 	new_global_state = mdp5_get_global_state(s);
 	if (IS_ERR(new_global_state))
-		return ERR_CAST(new_global_state);
+		return PTR_ERR(new_global_state);
 
 	/* grab old_state after mdp5_get_global_state(), since now we hold lock: */
 	old_global_state = mdp5_get_existing_global_state(mdp5_kms);
