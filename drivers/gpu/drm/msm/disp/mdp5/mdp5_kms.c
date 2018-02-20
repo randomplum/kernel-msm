@@ -116,7 +116,7 @@ static void mdp5_swap_state(struct msm_kms *kms, struct drm_atomic_state *state)
 struct mdp5_global_state *
 mdp5_get_existing_global_state(struct mdp5_kms *mdp5_kms)
 {
-	return to_mdp5_global_state(mdp5_kms->glob_base.state);
+	return to_mdp5_global_state(mdp5_kms->glob_state.state);
 }
 
 /*
@@ -128,13 +128,8 @@ struct mdp5_global_state *mdp5_get_global_state(struct drm_atomic_state *s)
 	struct msm_drm_private *priv = s->dev->dev_private;
 	struct mdp5_kms *mdp5_kms = to_mdp5_kms(to_mdp_kms(priv->kms));
 	struct drm_private_state *priv_state;
-	int ret;
 
-	ret = drm_modeset_lock(&mdp5_kms->glob_state_lock, s->acquire_ctx);
-	if (ret)
-		return ERR_PTR(ret);
-
-	priv_state = drm_atomic_get_private_obj_state(s, &mdp5_kms->glob_base);
+	priv_state = drm_atomic_get_private_obj_state(s, &mdp5_kms->glob_state);
 	if (IS_ERR(priv_state))
 		return ERR_CAST(priv_state);
 
@@ -176,11 +171,9 @@ static int mdp5_global_obj_init(struct mdp5_kms *mdp5_kms)
 	if (!state)
 		return -ENOMEM;
 
-	drm_modeset_lock_init(&mdp5_kms->glob_state_lock);
-
 	state->mdp5_kms = mdp5_kms;
 
-	drm_atomic_private_obj_init(&mdp5_kms->glob_base,
+	drm_atomic_private_obj_init(&mdp5_kms->glob_state,
 				    &state->base,
 				    &mdp5_global_state_funcs);
 	return 0;
@@ -859,7 +852,7 @@ static void mdp5_destroy(struct platform_device *pdev)
 	if (mdp5_kms->rpm_enabled)
 		pm_runtime_disable(&pdev->dev);
 
-	drm_atomic_private_obj_fini(&mdp5_kms->glob_base);
+	drm_atomic_private_obj_fini(&mdp5_kms->glob_state);
 
 	kfree(mdp5_kms->state);
 }

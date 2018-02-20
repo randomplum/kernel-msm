@@ -61,8 +61,7 @@ struct mdp5_kms {
 	 * Global private object state, Do not access directly, use
 	 * mdp5_global_get_state()
 	 */
-	struct drm_private_obj glob_base;
-	struct drm_modeset_lock glob_state_lock;
+	struct drm_private_obj glob_state;
 
 	struct mdp5_smp *smp;
 	struct mdp5_ctl_manager *ctlm;
@@ -119,10 +118,8 @@ struct mdp5_global_state {
 	struct mdp5_smp_state smp;
 };
 
-struct mdp5_global_state *
-mdp5_get_existing_global_state(struct mdp5_kms *mdp5_kms);
-struct mdp5_global_state *__must_check
-mdp5_get_global_state(struct drm_atomic_state *s);
+struct mdp5_global_state * mdp5_get_existing_global_state(struct mdp5_kms *mdp5_kms);
+struct mdp5_global_state *__must_check mdp5_get_global_state(struct drm_atomic_state *s);
 
 /* Atomic plane state.  Subclasses the base drm_plane_state in order to
  * track assigned hwpipe and hw specific state.
