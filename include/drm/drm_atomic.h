@@ -219,6 +219,11 @@ struct drm_private_state_funcs {
  */
 struct drm_private_obj {
 	/**
+	 * @lock: Modeset lock to protect the state object.
+	 */
+	struct drm_modeset_lock lock;
+
+	/**
 	 * @state: Current atomic state for this driver private object.
 	 */
 	struct drm_private_state *state;

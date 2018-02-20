@@ -1078,6 +1078,8 @@ drm_atomic_private_obj_init(struct drm_private_obj *obj,
 {
 	memset(obj, 0, sizeof(*obj));
 
+	drm_modeset_lock_init(&obj->lock);
+
 	obj->state = state;
 	obj->funcs = funcs;
 }
@@ -1093,6 +1095,7 @@ void
 drm_atomic_private_obj_fini(struct drm_private_obj *obj)
 {
 	obj->funcs->atomic_destroy_state(obj, obj->state);
+	drm_modeset_lock_fini(&obj->lock);
 }
 EXPORT_SYMBOL(drm_atomic_private_obj_fini);
 
@@ -1113,7 +1116,7 @@ struct drm_private_state *
 drm_atomic_get_private_obj_state(struct drm_atomic_state *state,
 				 struct drm_private_obj *obj)
 {
-	int index, num_objs, i;
+	int index, num_objs, i, ret;
 	size_t size;
 	struct __drm_private_objs_state *arr;
 	struct drm_private_state *obj_state;
@@ -1121,6 +1124,10 @@ drm_atomic_get_private_obj_state(struct drm_atomic_state *state,
 	for (i = 0; i < state->num_private_objs; i++)
 		if (obj == state->private_objs[i].ptr)
 			return state->private_objs[i].state;
+
+	ret = drm_modeset_lock(&obj->lock, state->acquire_ctx);
+	if (ret)
+		return ERR_PTR(ret);
 
 	num_objs = state->num_private_objs + 1;
 	size = sizeof(*state->private_objs) * num_objs;
