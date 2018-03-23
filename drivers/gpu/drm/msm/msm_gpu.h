@@ -35,6 +35,7 @@ struct msm_gpu_config {
 	uint64_t va_start;
 	uint64_t va_end;
 	unsigned int nr_rings;
+	unsigned long mmu_features;
 };
 
 /* So far, with hardware that I've seen to date, we can have:

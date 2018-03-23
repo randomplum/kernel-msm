@@ -54,6 +54,7 @@ struct msm_mmu {
 	struct device *dev;
 	int (*handler)(void *arg, unsigned long iova, int flags);
 	void *arg;
+	unsigned long features;
 };
 
 static inline void msm_mmu_init(struct msm_mmu *mmu, struct device *dev,
@@ -77,5 +78,17 @@ static inline void msm_mmu_set_fault_handler(struct msm_mmu *mmu, void *arg,
 /* DPU smmu driver initialize and cleanup functions */
 int __init msm_smmu_driver_init(void);
 void __exit msm_smmu_driver_cleanup(void);
+
+static inline void msm_mmu_set_feature(struct msm_mmu *mmu,
+		unsigned long feature)
+{
+	mmu->features |= feature;
+}
+
+static inline bool msm_mmu_has_feature(struct msm_mmu *mmu,
+		unsigned long feature)
+{
+	return (mmu->features & feature) ? true : false;
+}
 
 #endif /* __MSM_MMU_H__ */
