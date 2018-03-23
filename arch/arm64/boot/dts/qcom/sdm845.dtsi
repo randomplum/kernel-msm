@@ -1526,8 +1526,8 @@
 			compatible = "qcom,adreno-630.2", "qcom,adreno";
 			#stream-id-cells = <16>;
 
-			reg = <0x5000000 0x40000>;
-			reg-names = "kgsl_3d0_reg_memory";
+			reg = <0x5000000 0x40000>, <0x509e000 0x10>;
+			reg-names = "kgsl_3d0_reg_memory", "cx_mem";
 
 			/*
 			 * Look ma, no clocks! The GPU clocks and power are
@@ -1536,6 +1536,10 @@
 
 			interrupts = <0 300 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "kgsl_3d0_irq";
+
+			/* GPU related llc slices */
+			cache-slice-names = "gpu", "gpuhtw";
+			cache-slices = <&llcc 12>, <&llcc 11>;
 
 			iommus = <&kgsl_smmu 0>;
 
