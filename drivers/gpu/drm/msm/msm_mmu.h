@@ -49,6 +49,9 @@ struct msm_mmu_funcs {
 	bool (*is_domain_secure)(struct msm_mmu *mmu);
 };
 
+/* MMU features */
+#define MMU_FEATURE_USE_SYSTEM_CACHE (1 << 0)
+
 struct msm_mmu {
 	const struct msm_mmu_funcs *funcs;
 	struct device *dev;
