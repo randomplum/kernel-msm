@@ -143,6 +143,14 @@
 			wakeup-source;
 		};
 	};
+
+	gpio-restart {
+		compatible = "gpio-restart";
+		gpios = <&tlmm 116 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&ap_rst_req>;
+		priority = <200>;
+	};
 };
 
 &apps_rsc {
@@ -930,6 +938,18 @@ ap_ts_i2c: &i2c14 {
 		pinconf {
 			pins = "gpio37";
 			drive-strength = <8>; /* TODO: why? */
+			bias-disable;
+		};
+	};
+
+	ap_rst_req: ap-rst-req {
+		pinmux {
+			pins = "gpio116";
+			function = "gpio";
+		};
+
+		pinconf {
+			pins = "gpio116";
 			bias-disable;
 		};
 	};
