@@ -663,7 +663,7 @@ static const struct qmp_phy_init_tbl ufsphy_rx_tbl[] = {
 	QMP_PHY_INIT_CFG(QSERDES_V3_RX_RX_TERM_BW, 0x5b),
 	QMP_PHY_INIT_CFG(QSERDES_V3_RX_RX_EQU_ADAPTOR_CNTRL2, 0x06),
 	QMP_PHY_INIT_CFG(QSERDES_V3_RX_RX_EQU_ADAPTOR_CNTRL3, 0x04),
-	QMP_PHY_INIT_CFG(QSERDES_V3_RX_RX_EQU_ADAPTOR_CNTRL4, 0x1d),
+	QMP_PHY_INIT_CFG(QSERDES_V3_RX_RX_EQU_ADAPTOR_CNTRL4, 0x1b),
 	QMP_PHY_INIT_CFG(QSERDES_V3_RX_UCDR_SVS_SO_GAIN_HALF, 0x04),
 	QMP_PHY_INIT_CFG(QSERDES_V3_RX_UCDR_SVS_SO_GAIN_QUARTER, 0x04),
 	QMP_PHY_INIT_CFG(QSERDES_V3_RX_UCDR_SVS_SO_GAIN, 0x04),
@@ -673,8 +673,17 @@ static const struct qmp_phy_init_tbl ufsphy_rx_tbl[] = {
 	QMP_PHY_INIT_CFG(QSERDES_V3_RX_RX_MODE_00, 0x59),
 };
 
-static const struct qmp_phy_init_tbl ufsphy_pcs_tbl[] = {
-	QMP_PHY_INIT_CFG(QPHY_V3_PCS_POWER_DOWN_CONTROL, 0x01),
+static const struct qmp_phy_init_tbl ufsphy_pcs_tbl0[] = {
+	QMP_PHY_INIT_CFG(QPHY_V3_PCS_RX_SIGDET_CTRL2, 0x6e),
+	QMP_PHY_INIT_CFG(QPHY_V3_PCS_TX_LARGE_AMP_DRV_LVL, 0x0a),
+	QMP_PHY_INIT_CFG(QPHY_V3_PCS_TX_SMALL_AMP_DRV_LVL, 0x02),
+	QMP_PHY_INIT_CFG(QPHY_V3_PCS_RX_SYM_RESYNC_CTRL, 0x03),
+	QMP_PHY_INIT_CFG(QPHY_V3_PCS_TX_MID_TERM_CTRL1, 0x43),
+	QMP_PHY_INIT_CFG(QPHY_V3_PCS_RX_SIGDET_CTRL1, 0x0f),
+	QMP_PHY_INIT_CFG(QPHY_V3_PCS_RX_MIN_HIBERN8_TIME, 0x9a),
+};
+
+static const struct qmp_phy_init_tbl ufsphy_pcs_tbl1[] = {
 	QMP_PHY_INIT_CFG(QPHY_V3_PCS_MULTI_LANE_CTRL1, 0x02),
 };
 
@@ -694,6 +703,10 @@ struct qmp_phy_cfg {
 	int rx_tbl_num;
 	const struct qmp_phy_init_tbl *pcs_tbl;
 	int pcs_tbl_num;
+	const struct qmp_phy_init_tbl *pcs_tbl0;
+	int pcs_tbl0_num;
+	const struct qmp_phy_init_tbl *pcs_tbl1;
+	int pcs_tbl1_num;
 
 	/* clock ids to be requested */
 	const char * const *clk_list;
@@ -984,8 +997,10 @@ static const struct qmp_phy_cfg sdm845_ufsphy_cfg = {
 	.tx_tbl_num		= ARRAY_SIZE(ufsphy_tx_tbl),
 	.rx_tbl			= ufsphy_rx_tbl,
 	.rx_tbl_num		= ARRAY_SIZE(ufsphy_rx_tbl),
-	.pcs_tbl		= ufsphy_pcs_tbl,
-	.pcs_tbl_num		= ARRAY_SIZE(ufsphy_pcs_tbl),
+	.pcs_tbl0		= ufsphy_pcs_tbl0,
+	.pcs_tbl0_num		= ARRAY_SIZE(ufsphy_pcs_tbl0),
+	.pcs_tbl1		= ufsphy_pcs_tbl1,
+	.pcs_tbl1_num		= ARRAY_SIZE(ufsphy_pcs_tbl1),
 	.clk_list		= sdm845_ufs_phy_clk_l,
 	.num_clks		= ARRAY_SIZE(sdm845_ufs_phy_clk_l),
 	.vreg_list		= msm8996_phy_vreg_l,
@@ -1235,7 +1250,13 @@ static int qcom_qmp_phy_init(struct phy *phy)
 		qcom_qmp_phy_configure(rx + cfg->rx_b_lane_offset, cfg->regs,
 				       cfg->rx_tbl, cfg->rx_tbl_num);
 
-	qcom_qmp_phy_configure(pcs, cfg->regs, cfg->pcs_tbl, cfg->pcs_tbl_num);
+	if (cfg->type == PHY_TYPE_UFS) {
+		if (qphy->index == 0)
+			qcom_qmp_phy_configure(pcs, cfg->regs, cfg->pcs_tbl0, cfg->pcs_tbl0_num);
+		if (qphy->index == 1)
+			qcom_qmp_phy_configure(pcs, cfg->regs, cfg->pcs_tbl1, cfg->pcs_tbl1_num);
+	} else
+		qcom_qmp_phy_configure(pcs, cfg->regs, cfg->pcs_tbl, cfg->pcs_tbl_num);
 
 	/*
 	 * Pull out PHY from POWER DOWN state.
