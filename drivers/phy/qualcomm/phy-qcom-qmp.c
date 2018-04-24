@@ -1573,10 +1573,41 @@ static int phy_pipe_clk_register(struct qcom_qmp *qmp, struct device_node *np)
 	return devm_clk_hw_register(qmp->dev, &fixed->hw);
 }
 
+static void qcom_qmp_phy_dumpregs(struct phy *phy)
+{
+	struct qmp_phy *qphy = phy_get_drvdata(phy);
+	struct qcom_qmp *qmp_serdes = qphy->qmp;
+
+	dev_err(&phy->dev, " === %s ===\n", __func__);
+	print_hex_dump(KERN_ERR, "PHY QSERDES COM PLL Regs ",
+		       DUMP_PREFIX_OFFSET,
+		       16, 4, qmp_serdes->serdes, 0x18c, false);
+
+	print_hex_dump(KERN_ERR, "PHY PCS Regs ",
+		       DUMP_PREFIX_OFFSET,
+		       16, 4, qphy->pcs, 0x1dc, false);
+}
+
+static void qcom_qmp_phy_dump_lane_regs(struct phy *phy)
+{
+	struct qmp_phy *qphy = phy_get_drvdata(phy);
+
+	dev_err(&phy->dev, " === %s ===\n", __func__);
+	print_hex_dump(KERN_ERR, "PHY  QSERDES TX Regs ",
+		       DUMP_PREFIX_OFFSET,
+		       16, 4, qphy->tx, 0x128, false);
+
+	print_hex_dump(KERN_ERR, "PHY  QSERDES RX Regs ",
+		       DUMP_PREFIX_OFFSET,
+		       16, 4, qphy->rx, 0x1fc, false);
+}
+
 static const struct phy_ops qcom_qmp_phy_gen_ops = {
 	.init		= qcom_qmp_phy_init,
 	.exit		= qcom_qmp_phy_exit,
 	.set_mode	= qcom_qmp_phy_set_mode,
+	.dump_phy_regs	= qcom_qmp_phy_dumpregs,
+	.dump_lane_regs	= qcom_qmp_phy_dump_lane_regs,
 	.owner		= THIS_MODULE,
 };
 
