@@ -1064,6 +1064,8 @@ static void qcom_qmp_phy_configure(void __iomem *base,
 static int qcom_qmp_phy_com_init(struct qcom_qmp *qmp)
 {
 	const struct qmp_phy_cfg *cfg = qmp->cfg;
+	struct qmp_phy *qphy = qmp->phys[0];
+	void __iomem *pcs = qphy->pcs;
 	void __iomem *serdes = qmp->serdes;
 	void __iomem *dp_com = qmp->dp_com;
 	int ret, i;
@@ -1124,6 +1126,14 @@ static int qcom_qmp_phy_com_init(struct qcom_qmp *qmp)
 		qphy_clrbits(dp_com, QPHY_V3_DP_COM_RESET_OVRD_CTRL,
 			     SW_DPPHY_RESET_MUX | SW_DPPHY_RESET |
 			     SW_USB3PHY_RESET_MUX | SW_USB3PHY_RESET);
+	}
+
+	if (cfg->type == PHY_TYPE_UFS) {
+		/*
+		 * Pull out PHY from POWER DOWN state.
+		 * This is active low enable signal to power-down PHY.
+		 */
+		qphy_setbits(pcs, QPHY_POWER_DOWN_CONTROL, cfg->pwrdn_ctrl);
 	}
 
 	/* Serdes configuration */
@@ -1251,10 +1261,18 @@ static int qcom_qmp_phy_init(struct phy *phy)
 				       cfg->rx_tbl, cfg->rx_tbl_num);
 
 	if (cfg->type == PHY_TYPE_UFS) {
-		if (qphy->index == 0)
+		if (qphy->index == 0) {
 			qcom_qmp_phy_configure(pcs, cfg->regs, cfg->pcs_tbl0, cfg->pcs_tbl0_num);
-		if (qphy->index == 1)
+			if (cfg->nlanes > 1)
+				return ret;
+			else
+				goto phy_start;
+		}
+		if (qphy->index == 1) {
 			qcom_qmp_phy_configure(pcs, cfg->regs, cfg->pcs_tbl1, cfg->pcs_tbl1_num);
+			goto phy_start;
+		}
+			
 	} else
 		qcom_qmp_phy_configure(pcs, cfg->regs, cfg->pcs_tbl, cfg->pcs_tbl_num);
 
@@ -1273,6 +1291,7 @@ static int qcom_qmp_phy_init(struct phy *phy)
 	if (cfg->has_phy_dp_com_ctrl)
 		qphy_clrbits(dp_com, QPHY_V3_DP_COM_SW_RESET, SW_RESET);
 
+phy_start:
 	/* start SerDes and Phy-Coding-Sublayer */
 	qphy_setbits(pcs, cfg->regs[QPHY_START_CTRL], cfg->start_ctrl);
 
