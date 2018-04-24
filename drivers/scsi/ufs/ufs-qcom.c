@@ -562,6 +562,8 @@ static int ufs_qcom_link_startup_notify(struct ufs_hba *hba,
 	}
 
 out:
+	if (err)
+		dev_err(hba->dev, "%s failed: err (%d)\n", __func__, err);
 	return err;
 }
 
@@ -1669,6 +1671,8 @@ static void ufs_qcom_print_unipro_testbus(struct ufs_hba *hba)
 
 static void ufs_qcom_dump_dbg_regs(struct ufs_hba *hba)
 {
+	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
+
 	ufs_qcom_dump_regs(hba, REG_UFS_SYS1CLK_1US, 16,
 			"HCI Vendor Specific Registers ");
 
@@ -1679,6 +1683,10 @@ static void ufs_qcom_dump_dbg_regs(struct ufs_hba *hba)
 	usleep_range(1000, 1100);
 	ufs_qcom_print_unipro_testbus(hba);
 	usleep_range(1000, 1100);
+	phy_dump_regs(host->phy_lane0);
+	phy_dump_lane_regs(host->phy_lane0);
+	phy_dump_lane_regs(host->phy_lane1);
+
 }
 
 /**
