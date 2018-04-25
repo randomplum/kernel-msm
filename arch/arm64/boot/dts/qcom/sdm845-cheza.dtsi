@@ -101,6 +101,18 @@
 
 	/* BOARD-SPECIFIC TOP LEVEL NODES */
 
+	/* TODO: what is this? */
+	edp-out {
+		compatible = "edp-connector";
+		type = "a";
+
+		port {
+			edp_con: endpoint {
+				remote-endpoint = <&sn65dsi86_out>;
+			};
+		};
+	};
+
 	gpio-keys {
 		compatible = "gpio-keys";
 		pinctrl-names = "default";
@@ -531,6 +543,96 @@
 	};
 };
 
+&dsi0 {
+	status = "okay";
+	vdda-supply = <&vdda_mipi_dsi0_1p2>;
+
+	ports {
+		port@1 {
+			endpoint {
+				remote-endpoint = <&sn65dsi86_in>;
+				data-lanes = <0 1 2 3>;
+			};
+		};
+	};
+};
+
+&dsi0_phy {
+	status = "okay";
+	vdds-supply = <&vdda_mipi_dsi0_pll>;
+};
+
+edp_brij_i2c: &i2c3 {
+	status = "okay";
+
+	/* TODO: clock-frequency? */
+
+	sn65dsi86_bridge: bridge@2d {
+		#address-cells = <2>;
+		#size-cells = <1>;
+
+		status = "okay";
+
+		compatible = "ti,sn65dsi86";
+		reg = <0x2d>;
+
+		interrupt-parent = <&tlmm>;
+		interrupts = <31 2>;
+
+		sn,irq-gpio = <&tlmm 32 0>;
+		sn,panel-bklt-en = <&tlmm 37 0>;
+		sn,panel-bias-en = <&tlmm 102 0>;
+
+		vpll-supply = <&src_pp1800_s4a>;
+		vcca-supply = <&src_pp1200_l2a>;
+
+		clocks = <&rpmhcc RPMH_LN_BB_CLK2>;
+		clock-names = "refclk";
+
+		/* TODO: need a sleep config? */
+		pinctrl-names = "default";
+		pinctrl-0 = <&ap_edp_bklten &edp_brij_en &en_pp3300_dx_edp>;
+		#sound-dai-cells = <1>;
+
+		sn,custom-modes {
+			sn65dsi86_mode0: sn,customize-mode-id@0 {
+				sn,mode-h-active = <2160>;
+				sn,mode-h-front-porch = <48>;
+				sn,mode-h-pulse-width = <32>;
+				sn,mode-h-back-porch = <80>;
+				sn,mode-h-active-high;
+				sn,mode-v-active = <1440>;
+				sn,mode-v-front-porch = <3>;
+				sn,mode-v-pulse-width = <10>;
+				sn,mode-v-back-porch = <27>;
+				sn,mode-v-active-high;
+				sn,mode-refresh-rate = <60>;
+				sn,mode-clock-in-khz = <205000>;
+
+			};
+		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				sn65dsi86_in: endpoint {
+					remote-endpoint = <&dsi0_out>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				sn65dsi86_out: endpoint {
+				remote-endpoint = <&edp_con>;
+				};
+			};
+		};
+	};
+};
+
 ap_pen_1v8: &i2c11 {
 	status = "okay";
 
@@ -705,6 +807,15 @@ ap_ts_i2c: &i2c14 {
 };
 
 /* PINCTRL - additions to nodes defined in sdm845.dtsi */
+&qup_i2c3_default {
+	pinconf {
+		pins = "gpio41", "gpio42";
+		drive-strength = <2>;
+
+		/* Has external pullup */
+		bias-disable;
+	};
+};
 
 &qup_i2c11_default {
 	pinconf {
@@ -813,6 +924,19 @@ ap_ts_i2c: &i2c14 {
 };
 
 &tlmm {
+	ap_edp_bklten: ap-edp-bklten {
+		pinmux {
+			pins = "gpio37";
+			function = "gpio";
+		};
+
+		pinconf {
+			pins = "gpio37";
+			drive-strength = <8>; /* TODO: why? */
+			bias-disable;
+		};
+	};
+
 	ec_ap_int_l: ec-ap-int-l {
 		pinmux {
 		       pins = "gpio122";
@@ -823,6 +947,32 @@ ap_ts_i2c: &i2c14 {
 		pinconf {
 		       pins = "gpio122";
 		       bias-pull-up;
+		};
+	};
+
+	edp_brij_en: edp-brij-en {
+		pinmux {
+			pins = "gpio102";
+			function = "gpio";
+		};
+
+		pinconf {
+			pins = "gpio102";
+			drive-strength = <8>; /* TODO: why? */
+			bias-disable;
+		};
+	};
+
+	en_pp3300_dx_edp: en-pp3300-dx-edp {
+		pinmux {
+			pins = "gpio43";
+			function = "gpio";
+		};
+
+		pinconf {
+			pins = "gpio43";
+			drive-strength = <8>; /* TODO: why? */
+			bias-disable;
 		};
 	};
 
