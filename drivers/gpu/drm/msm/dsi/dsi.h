@@ -183,6 +183,8 @@ void msm_dsi_host_destroy(struct mipi_dsi_host *host);
 int msm_dsi_host_modeset_init(struct mipi_dsi_host *host,
 					struct drm_device *dev);
 int msm_dsi_host_init(struct msm_dsi *msm_dsi);
+bool msm_dsi_has_valid_device(struct mipi_dsi_host *host);
+bool msm_dsi_has_valid_device(struct mipi_dsi_host *host);
 int msm_dsi_runtime_suspend(struct device *dev);
 int msm_dsi_runtime_resume(struct device *dev);
 

@@ -471,6 +471,16 @@ static void dsi_bus_clk_disable(struct msm_dsi_host *msm_host)
 		clk_disable_unprepare(msm_host->bus_clks[i]);
 }
 
+bool msm_dsi_has_valid_device(struct mipi_dsi_host *host)
+{
+	struct msm_dsi_host *msm_host = to_msm_dsi_host(host);
+
+	if (msm_host->device_node)
+		return true;
+
+	return false;
+}
+
 int msm_dsi_runtime_suspend(struct device *dev)
 {
 	struct platform_device *pdev = to_platform_device(dev);

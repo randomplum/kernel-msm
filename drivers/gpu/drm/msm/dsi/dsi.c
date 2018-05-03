@@ -120,7 +120,11 @@ static int dsi_bind(struct device *dev, struct device *master, void *data)
 	if (IS_ERR(msm_dsi))
 		return PTR_ERR(msm_dsi);
 
-	priv->dsi[msm_dsi->id] = msm_dsi;
+	/* Add only the host which has a device attached to it */
+	if (msm_dsi_has_valid_device(msm_dsi->host)) {
+		pr_info("id = %d has valid device\n", msm_dsi->id);
+		priv->dsi[msm_dsi->id] = msm_dsi;
+	}
 
 	return 0;
 }

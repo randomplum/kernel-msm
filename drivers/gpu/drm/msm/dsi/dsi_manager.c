@@ -674,11 +674,14 @@ struct drm_connector *msm_dsi_manager_ext_bridge_init(u8 id)
 	struct drm_bridge *int_bridge, *ext_bridge;
 	struct drm_connector *connector;
 	struct list_head *connector_list;
+	struct msm_kms *kms;
+	struct msm_drm_private *priv;
 
 	int_bridge = msm_dsi->bridge;
 	ext_bridge = msm_dsi->external_bridge =
 			msm_dsi_host_get_bridge(msm_dsi->host);
-
+	priv = dev->dev_private;
+	kms = priv->kms;
 	encoder = msm_dsi->encoder;
 
 	/* link the internal dsi bridge to the external bridge */
@@ -689,6 +692,7 @@ struct drm_connector *msm_dsi_manager_ext_bridge_init(u8 id)
 	 * driver (or someone else) to feed it to our driver's
 	 * priv->connector[] list, mainly for msm_fbdev_init()
 	 */
+	kms->funcs->set_encoder_mode(kms, encoder, false);
 	connector_list = &dev->mode_config.connector_list;
 
 	list_for_each_entry(connector, connector_list, head) {
