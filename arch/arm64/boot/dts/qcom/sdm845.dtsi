@@ -1186,3 +1186,9 @@
 		};
 	};
 };
+
+/*
+ * TODO: the below isn't the right way to do this; this is all just hacks
+ * until we have patches to do this right.
+ */
+#include "sdm845-regulator.dtsi"
