@@ -124,6 +124,11 @@ static int dsi_bind(struct device *dev, struct device *master, void *data)
 	if (msm_dsi_has_valid_device(msm_dsi->host)) {
 		pr_info("id = %d has valid device\n", msm_dsi->id);
 		priv->dsi[msm_dsi->id] = msm_dsi;
+	} else {
+		dev_info(dev, "id = %d has no valid device\n",
+			 msm_dsi->id);
+		//dsi_destroy(msm_dsi);
+		//return -EINVAL;
 	}
 
 	return 0;
