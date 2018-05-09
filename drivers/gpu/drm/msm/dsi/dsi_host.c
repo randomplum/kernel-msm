@@ -1815,14 +1815,14 @@ int msm_dsi_host_init(struct msm_dsi *msm_dsi)
 	if (!msm_host->cfg_hnd) {
 		ret = -EINVAL;
 		pr_err("%s: get config failed\n", __func__);
-		goto fail;
+		goto err_pm_runtime_enabled;
 	}
 
 	msm_host->id = dsi_host_get_id(msm_host);
 	if (msm_host->id < 0) {
 		ret = msm_host->id;
 		pr_err("%s: unable to identify DSI host index\n", __func__);
-		goto fail;
+		goto err_pm_runtime_enabled;
 	}
 
 	/* fixup base address by io offset */
@@ -1831,20 +1831,20 @@ int msm_dsi_host_init(struct msm_dsi *msm_dsi)
 	ret = dsi_regulator_init(msm_host);
 	if (ret) {
 		pr_err("%s: regulator init failed\n", __func__);
-		goto fail;
+		goto err_pm_runtime_enabled;
 	}
 
 	ret = dsi_clk_init(msm_host);
 	if (ret) {
 		pr_err("%s: unable to initialize dsi clks\n", __func__);
-		goto fail;
+		goto err_pm_runtime_enabled;
 	}
 
 	msm_host->rx_buf = devm_kzalloc(&pdev->dev, SZ_4K, GFP_KERNEL);
 	if (!msm_host->rx_buf) {
 		ret = -ENOMEM;
 		pr_err("%s: alloc rx temp buf failed\n", __func__);
-		goto fail;
+		goto err_pm_runtime_enabled;
 	}
 
 	init_completion(&msm_host->dma_comp);
@@ -1862,6 +1862,9 @@ int msm_dsi_host_init(struct msm_dsi *msm_dsi)
 
 	DBG("Dsi Host %d initialized", msm_host->id);
 	return 0;
+
+err_pm_runtime_enabled:
+	pm_runtime_disable(&pdev->dev);
 
 fail:
 	return ret;
