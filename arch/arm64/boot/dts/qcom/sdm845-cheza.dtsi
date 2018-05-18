@@ -537,6 +537,28 @@
 	status = "okay";
 };
 
+&spi0 {
+	status = "okay";
+	spi-max-frequency = <3000000>;  /* TODO: Drop this? */
+};
+
+&spi10 {
+	status = "okay";
+	spi-max-frequency = <3000000>;  /* TODO: Drop this? */
+};
+
+&spi5 {
+	status = "okay";
+	spi-max-frequency = <800000>; /* TODO: Drop this */
+	cr50@0 {
+		compatible = "google,cr50";
+		reg = <0>;
+		spi-max-frequency = <800000>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <129 IRQ_TYPE_EDGE_RISING>;
+	};
+};
+
 &uart9 {
 	status = "okay";
 };
@@ -634,6 +656,31 @@
 
 /* PINCTRL - additions to nodes defined in sdm845.dtsi */
 
+&qup_spi0_default {
+	pinconf {
+		pins = "gpio0", "gpio1", "gpio2", "gpio3";
+		drive-strength = <2>;
+		bias-disable;
+	};
+};
+
+&qup_spi5_default {
+	pinconf {
+		pins = "gpio85", "gpio86", "gpio87", "gpio88";
+		/* TODO: drive strength 6 mA is right? */
+		drive-strength = <6>;
+		bias-disable;
+	};
+};
+
+&qup_spi10_default {
+	pinconf {
+		pins = "gpio53", "gpio54", "gpio55", "gpio56";
+		drive-strength = <2>;
+		bias-disable;
+	};
+};
+
 &qup_uart9_default {
 	pinconf-tx {
 		pins = "gpio4";
@@ -686,6 +733,19 @@
 };
 
 &tlmm {
+	ec_ap_int_l: ec-ap-int-l {
+		pinmux {
+		       pins = "gpio122";
+		       function = "gpio";
+		       input-enable; /* ? */
+		};
+
+		pinconf {
+		       pins = "gpio122";
+		       bias-pull-up;
+		};
+	};
+
 	pen_eject_odl: pen-eject-odl {
 		pinmux {
 			pins = "gpio119";
