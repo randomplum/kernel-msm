@@ -280,9 +280,9 @@ static int spi_geni_prepare_transfer_hardware(struct spi_master *spi)
 
 	if (unlikely(!mas->setup)) {
 		int proto = geni_se_read_proto(se);
+		u32 ver;
 		unsigned int major;
 		unsigned int minor;
-		unsigned int step;
 
 		if (unlikely(proto != GENI_SE_SPI)) {
 			dev_err(mas->dev, "Invalid proto %d\n", proto);
@@ -295,7 +295,9 @@ static int spi_geni_prepare_transfer_hardware(struct spi_master *spi)
 		mas->oversampling = 1;
 		/* Transmit an entire FIFO worth of data per IRQ */
 		mas->tx_wm = 1;
-		geni_se_get_wrapper_version(se, major, minor, step);
+		ver = geni_se_get_qup_hw_version(se);
+		major = GENI_SE_VERSION_MAJOR(ver);
+		minor = GENI_SE_VERSION_MINOR(ver);
 		if ((major == 1) && (minor == 0))
 			mas->oversampling = 2;
 		mas->setup = 1;
