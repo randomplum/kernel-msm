@@ -111,7 +111,7 @@ static int get_spi_clk_cfg(u32 speed_hz, struct spi_geni_master *mas,
 	struct geni_se *se = &mas->se;
 	int ret;
 
-	ret = geni_se_clk_freq_match(&mas->se,
+	ret = geni_se_clk_freq_match(se,
 				(speed_hz * mas->oversampling), clk_idx,
 				&sclk_freq, true);
 	if (ret) {
@@ -120,6 +120,8 @@ static int get_spi_clk_cfg(u32 speed_hz, struct spi_geni_master *mas,
 		return ret;
 	}
 
+	sclk_freq = 19200000;
+	*clk_idx = 0;
 	*clk_div = ((sclk_freq / mas->oversampling) / speed_hz);
 	if (!(*clk_div)) {
 		dev_err(mas->dev, "%s:Err:sclk:%lu oversampling:%d speed:%u\n",
@@ -129,7 +131,7 @@ static int get_spi_clk_cfg(u32 speed_hz, struct spi_geni_master *mas,
 
 	dev_dbg(mas->dev, "%s: req %u sclk %lu, idx %d, div %d\n", __func__,
 				speed_hz, sclk_freq, *clk_idx, *clk_div);
-	ret = clk_set_rate(se->clk, sclk_freq);
+	//ret = clk_set_rate(se->clk, sclk_freq);
 	if (ret)
 		dev_err(mas->dev, "%s: clk_set_rate failed %d\n",
 							__func__, ret);
