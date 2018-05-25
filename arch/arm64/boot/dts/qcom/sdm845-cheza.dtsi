@@ -267,6 +267,7 @@
 				 RPMH_REGULATOR_MODE_HPM>;
 		};
 
+		pp1800_dx_pen:
 		src_pp1800_l9a: ldo9 {
 			regulator-min-microvolt = <1704000>;
 			regulator-max-microvolt = <2928000>;
@@ -491,6 +492,7 @@
 				 RPMH_REGULATOR_MODE_HPM>;
 		};
 
+		pp3300_dx_pen:
 		src_pp3300_l28a: ldo28 {
 			regulator-min-microvolt = <2856000>;
 			regulator-max-microvolt = <3008000>;
@@ -526,6 +528,28 @@
 			regulator-min-microvolt = <600000>;
 			regulator-max-microvolt = <600000>;
 		};
+	};
+};
+
+ap_pen_1v8: &i2c11 {
+	status = "okay";
+
+	/* TODO: clock-frequency? */
+
+	digitizer@9 {
+		compatible = "wacom,w9013", "hid-over-i2c";
+		reg = <0x9>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pen_irq_l>, <&pen_pdct_l>, <&pen_rst_l>;
+
+		vdd-supply = <&pp3300_dx_pen>;
+		vddl-supply = <&pp1800_dx_pen>;
+		post-power-on-delay-ms = <100>;
+
+		interrupt-parent = <&tlmm>;
+		interrupts = <24 IRQ_TYPE_LEVEL_LOW>;
+
+		hid-descr-addr = <0x1>;
 	};
 };
 
@@ -676,6 +700,16 @@ ap_ts_i2c: &i2c14 {
 
 /* PINCTRL - additions to nodes defined in sdm845.dtsi */
 
+&qup_i2c11_default {
+	pinconf {
+		pins = "gpio31", "gpio32";
+		drive-strength = <2>;
+
+		/* Has external pullup */
+		bias-disable;
+	};
+};
+
 &qup_i2c14_default {
 	pinconf {
 		pins = "gpio33", "gpio34";
@@ -781,6 +815,48 @@ ap_ts_i2c: &i2c14 {
 			pins = "gpio119";
 			function = "gpio";
 			bias-pull-up;
+		};
+	};
+
+	pen_irq_l: pen-irq-l {
+		pinmux {
+			pins = "gpio24";
+			function = "gpio";
+		};
+
+		pinconf {
+			pins = "gpio24";
+
+			/* Has external pullup */
+			bias-disable;
+		};
+	};
+
+	pen_pdct_l: pen-pdct-l {
+		pinmux {
+			pins = "gpio63";
+			function = "gpio";
+		};
+
+		pinconf {
+			pins = "gpio63";
+
+			/* Has external pullup */
+			bias-disable;
+		};
+	};
+
+	pen_rst_l: pen-rst-l {
+		pinmux  {
+			pins = "gpio23";
+			function = "gpio";
+		};
+
+		pinconf {
+			pins = "gpio23";
+
+			/* TODO: shouldn't specify high here? */
+			output-high;
 		};
 	};
 
