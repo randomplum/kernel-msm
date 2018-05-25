@@ -553,6 +553,12 @@ ap_pen_1v8: &i2c11 {
 	};
 };
 
+amp_i2c: &i2c12 {
+	status = "okay";
+
+	/* TODO: clock-frequency? */
+};
+
 ap_ts_i2c: &i2c14 {
 	status = "okay";
 
@@ -703,6 +709,16 @@ ap_ts_i2c: &i2c14 {
 &qup_i2c11_default {
 	pinconf {
 		pins = "gpio31", "gpio32";
+		drive-strength = <2>;
+
+		/* Has external pullup */
+		bias-disable;
+	};
+};
+
+&qup_i2c12_default {
+	pinconf {
+		pins = "gpio49", "gpio50";
 		drive-strength = <2>;
 
 		/* Has external pullup */
