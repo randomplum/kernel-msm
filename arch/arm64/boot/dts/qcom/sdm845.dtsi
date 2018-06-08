@@ -7,6 +7,7 @@
 
 #include <dt-bindings/clock/qcom,gcc-sdm845.h>
 #include <dt-bindings/clock/qcom,rpmh.h>
+#include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 #include <dt-bindings/soc/qcom,rpmh-rsc.h>
 
@@ -278,6 +279,7 @@
 				reg = <0x880000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S0_CLK>;
+				cs-gpios = <&tlmm 3 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi0_default>;
 				interrupts = <GIC_SPI 601 IRQ_TYPE_LEVEL_HIGH>;
@@ -304,6 +306,7 @@
 				reg = <0x884000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S1_CLK>;
+				cs-gpios = <&tlmm 20 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi1_default>;
 				interrupts = <GIC_SPI 602 IRQ_TYPE_LEVEL_HIGH>;
@@ -330,6 +333,7 @@
 				reg = <0x888000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S2_CLK>;
+				cs-gpios = <&tlmm 30 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi2_default>;
 				interrupts = <GIC_SPI 603 IRQ_TYPE_LEVEL_HIGH>;
@@ -356,6 +360,7 @@
 				reg = <0x88c000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S3_CLK>;
+				cs-gpios = <&tlmm 44 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi3_default>;
 				interrupts = <GIC_SPI 604 IRQ_TYPE_LEVEL_HIGH>;
@@ -382,6 +387,7 @@
 				reg = <0x890000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S4_CLK>;
+				cs-gpios = <&tlmm 92 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi4_default>;
 				interrupts = <GIC_SPI 605 IRQ_TYPE_LEVEL_HIGH>;
@@ -408,6 +414,7 @@
 				reg = <0x894000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S5_CLK>;
+				cs-gpios = <&tlmm 88 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi5_default>;
 				interrupts = <GIC_SPI 606 IRQ_TYPE_LEVEL_HIGH>;
@@ -434,6 +441,7 @@
 				reg = <0x898000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S6_CLK>;
+				cs-gpios = <&tlmm 48 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi6_default>;
 				interrupts = <GIC_SPI 607 IRQ_TYPE_LEVEL_HIGH>;
@@ -460,6 +468,7 @@
 				reg = <0x89c000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S7_CLK>;
+				cs-gpios = <&tlmm 96 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi7_default>;
 				interrupts = <GIC_SPI 608 IRQ_TYPE_LEVEL_HIGH>;
@@ -498,6 +507,7 @@
 				reg = <0xa80000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S0_CLK>;
+				cs-gpios = <&tlmm 68 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi8_default>;
 				interrupts = <GIC_SPI 353 IRQ_TYPE_LEVEL_HIGH>;
@@ -524,6 +534,7 @@
 				reg = <0xa84000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S1_CLK>;
+				cs-gpios = <&tlmm 5 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi9_default>;
 				interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
@@ -561,6 +572,7 @@
 				reg = <0xa88000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S2_CLK>;
+				cs-gpios = <&tlmm 54 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi10_default>;
 				interrupts = <GIC_SPI 355 IRQ_TYPE_LEVEL_HIGH>;
@@ -587,6 +599,7 @@
 				reg = <0xa8c000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S3_CLK>;
+				cs-gpios = <&tlmm 34 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi11_default>;
 				interrupts = <GIC_SPI 356 IRQ_TYPE_LEVEL_HIGH>;
@@ -613,6 +626,7 @@
 				reg = <0xa90000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S4_CLK>;
+				cs-gpios = <&tlmm 52 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi12_default>;
 				interrupts = <GIC_SPI 357 IRQ_TYPE_LEVEL_HIGH>;
@@ -639,6 +653,7 @@
 				reg = <0xa94000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S5_CLK>;
+				cs-gpios = <&tlmm 108 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi13_default>;
 				interrupts = <GIC_SPI 358 IRQ_TYPE_LEVEL_HIGH>;
@@ -665,6 +680,7 @@
 				reg = <0xa98000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S6_CLK>;
+				cs-gpios = <&tlmm 32 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi14_default>;
 				interrupts = <GIC_SPI 359 IRQ_TYPE_LEVEL_HIGH>;
@@ -691,6 +707,7 @@
 				reg = <0xa9c000 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S7_CLK>;
+				cs-gpios = <&tlmm 84 GPIO_ACTIVE_HIGH>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&qup_spi15_default>;
 				interrupts = <GIC_SPI 360 IRQ_TYPE_LEVEL_HIGH>;
@@ -829,128 +846,208 @@
 			qup_spi0_default: qup-spi0-default {
 				pinmux {
 					pins = "gpio0", "gpio1",
-					       "gpio2", "gpio3";
+					       "gpio2";
 					function = "qup0";
+				};
+				pinmux-cs {
+					pins = "gpio3";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi1_default: qup-spi1-default {
 				pinmux {
 					pins = "gpio17", "gpio18",
-					       "gpio19", "gpio20";
+					       "gpio19";
 					function = "qup1";
+				};
+				pinmux-cs {
+					pins = "gpio20";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi2_default: qup-spi2-default {
 				pinmux {
 					pins = "gpio27", "gpio28",
-					       "gpio29", "gpio30";
+					       "gpio29";
 					function = "qup2";
+				};
+				pinmux-cs {
+					pins = "gpio30";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi3_default: qup-spi3-default {
 				pinmux {
 					pins = "gpio41", "gpio42",
-					       "gpio43", "gpio44";
+					       "gpio43";
 					function = "qup3";
+				};
+				pinmux-cs {
+					pins = "gpio44";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi4_default: qup-spi4-default {
 				pinmux {
 					pins = "gpio89", "gpio90",
-					       "gpio91", "gpio92";
+					       "gpio91";
 					function = "qup4";
+				};
+				pinmux-cs {
+					pins = "gpio92";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi5_default: qup-spi5-default {
 				pinmux {
 					pins = "gpio85", "gpio86",
-					       "gpio87", "gpio88";
+					       "gpio87";
 					function = "qup5";
+				};
+				pinmux-cs {
+					pins = "gpio88";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi6_default: qup-spi6-default {
 				pinmux {
 					pins = "gpio45", "gpio46",
-					       "gpio47", "gpio48";
+					       "gpio47";
 					function = "qup6";
+				};
+				pinmux-cs {
+					pins = "gpio48";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi7_default: qup-spi7-default {
 				pinmux {
 					pins = "gpio93", "gpio94",
-					       "gpio95", "gpio96";
+					       "gpio95";
 					function = "qup7";
+				};
+				pinmux-cs {
+					pins = "gpio96";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi8_default: qup-spi8-default {
 				pinmux {
 					pins = "gpio65", "gpio66",
-					       "gpio67", "gpio68";
+					       "gpio67";
 					function = "qup8";
+				};
+				pinmux-cs {
+					pins = "gpio68";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi9_default: qup-spi9-default {
 				pinmux {
 					pins = "gpio6", "gpio7",
-					       "gpio4", "gpio5";
+					       "gpio4";
 					function = "qup9";
+				};
+				pinmux-cs {
+					pins = "gpio5";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi10_default: qup-spi10-default {
 				pinmux {
 					pins = "gpio55", "gpio56",
-					       "gpio53", "gpio54";
+					       "gpio53";
 					function = "qup10";
+				};
+				pinmux-cs {
+					pins = "gpio54";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi11_default: qup-spi11-default {
 				pinmux {
 					pins = "gpio31", "gpio32",
-					       "gpio33", "gpio34";
+					       "gpio33";
 					function = "qup11";
+				};
+				pinmux-cs {
+					pins = "gpio34";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi12_default: qup-spi12-default {
 				pinmux {
 					pins = "gpio49", "gpio50",
-					       "gpio51", "gpio52";
+					       "gpio51";
 					function = "qup12";
+				};
+				pinmux-cs {
+					pins = "gpio52";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi13_default: qup-spi13-default {
 				pinmux {
 					pins = "gpio105", "gpio106",
-					       "gpio107", "gpio108";
+					       "gpio107";
 					function = "qup13";
+				};
+				pinmux-cs {
+					pins = "gpio108";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi14_default: qup-spi14-default {
 				pinmux {
 					pins = "gpio33", "gpio34",
-					       "gpio31", "gpio32";
+					       "gpio31";
 					function = "qup14";
+				};
+				pinmux-cs {
+					pins = "gpio32";
+					function = "gpio";
+					output-high;
 				};
 			};
 
 			qup_spi15_default: qup-spi15-default {
 				pinmux {
 					pins = "gpio81", "gpio82",
-					       "gpio83", "gpio84";
+					       "gpio83";
 					function = "qup15";
+				};
+				pinmux-cs {
+					pins = "gpio84";
+					function = "gpio";
+					output-high;
 				};
 			};
 
