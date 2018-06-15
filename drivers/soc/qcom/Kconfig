@@ -72,7 +72,7 @@ config QCOM_PM
 	  low power modes.
 
 config QCOM_QMI_HELPERS
-	tristate
+	tristate "Qualcomm QMI Helpers"
 	depends on ARCH_QCOM || COMPILE_TEST
 	depends on NET
 	help
