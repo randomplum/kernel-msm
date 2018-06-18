@@ -101,14 +101,44 @@
 
 	/* BOARD-SPECIFIC TOP LEVEL NODES */
 
-	/* TODO: what is this? */
-	edp-out {
-		compatible = "edp-connector";
-		type = "a";
+	edp_panel_bias: regulator-edp-panel-bias {
+		compatible = "regulator-gpio";
 
-		port {
-			edp_con: endpoint {
-				remote-endpoint = <&sn65dsi86_out>;
+		regulator-name = "edp panel bias";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <3500000>;
+
+		gpios = <&tlmm 43 GPIO_ACTIVE_HIGH>;
+		gpios-states = <1>;
+		states = <3500000 1
+			  1800000 0>;
+	};
+
+	/*
+	 * TODO: this belongs in cheza-r0, we need something using the
+	 * cros_ec_pwm for cheza-r1.  Probably we'll want a node that looks
+	 * like the one in rk3399-gru-kevin.dts for cheza-r1.
+	 */
+	backlight: backlight {
+		compatible = "gpio-backlight";
+
+		pinctrl-names = "default";
+
+		default-on;
+	};
+
+	panel: panel {
+		compatible ="innolux,tv123wam";
+		status = "okay";
+		power-supply = <&edp_panel_bias>;
+		enable-gpios = <&tlmm 37 GPIO_ACTIVE_HIGH>;
+		backlight = <&backlight>;
+
+		ports {
+			panel_in: port {
+				panel_in_edp: endpoint {
+					remote-endpoint = <&sn65dsi86_out>;
+				};
 			};
 		};
 	};
@@ -216,7 +246,7 @@
 			regulator-min-microvolt = <1200000>;
 			regulator-max-microvolt = <1200000>;
 			regulator-initial-mode =
-				<RPMH_REGULATOR_MODE_LPM>;
+				<RPMH_REGULATOR_MODE_HPM>;
 			regulator-allow-set-load;
 			regulator-allowed-modes =
 				<RPMH_REGULATOR_MODE_LPM
@@ -579,38 +609,17 @@ edp_brij_i2c: &i2c3 {
 		interrupt-parent = <&tlmm>;
 		interrupts = <31 2>;
 
-		sn,irq-gpio = <&tlmm 32 0>;
-		sn,panel-bklt-en = <&tlmm 37 0>;
-		sn,panel-bias-en = <&tlmm 102 0>;
-
 		vpll-supply = <&src_pp1800_s4a>;
+		vccio-supply = <&src_pp1800_s4a>;
 		vcca-supply = <&src_pp1200_l2a>;
+		vcc-supply = <&src_pp1200_l2a>;
 
 		clocks = <&rpmhcc RPMH_LN_BB_CLK2>;
 		clock-names = "refclk";
 
 		/* TODO: need a sleep config? */
 		pinctrl-names = "default";
-		pinctrl-0 = <&ap_edp_bklten &edp_brij_en &en_pp3300_dx_edp>;
 		#sound-dai-cells = <1>;
-
-		sn,custom-modes {
-			sn65dsi86_mode0: sn,customize-mode-id@0 {
-				sn,mode-h-active = <2160>;
-				sn,mode-h-front-porch = <48>;
-				sn,mode-h-pulse-width = <32>;
-				sn,mode-h-back-porch = <80>;
-				sn,mode-h-active-high;
-				sn,mode-v-active = <1440>;
-				sn,mode-v-front-porch = <3>;
-				sn,mode-v-pulse-width = <10>;
-				sn,mode-v-back-porch = <27>;
-				sn,mode-v-active-high;
-				sn,mode-refresh-rate = <60>;
-				sn,mode-clock-in-khz = <205000>;
-
-			};
-		};
 
 		ports {
 			#address-cells = <1>;
@@ -626,7 +635,7 @@ edp_brij_i2c: &i2c3 {
 			port@1 {
 				reg = <1>;
 				sn65dsi86_out: endpoint {
-				remote-endpoint = <&edp_con>;
+					remote-endpoint = <&panel_in_edp>;
 				};
 			};
 		};
