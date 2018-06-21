@@ -19,6 +19,15 @@
 		     "google,cheza-rev5", "google,cheza-rev4",
 		     "google,cheza-rev3", "google,cheza-rev2",
 		     "google,cheza-rev1", "google,cheza", "qcom,sdm845";
+
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&cros_ec_pwm 0>;
+		enable-gpios = <&tlmm 37 GPIO_ACTIVE_HIGH>;
+		power-supply = <&ppvar_sys>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&ap_edp_bklten>;
+	};
 };
 
 /* TODO: move this to main dtsi once -rev0 is gone */

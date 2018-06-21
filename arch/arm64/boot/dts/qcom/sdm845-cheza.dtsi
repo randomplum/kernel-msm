@@ -114,24 +114,10 @@
 			  1800000 0>;
 	};
 
-	/*
-	 * TODO: this belongs in cheza-r0, we need something using the
-	 * cros_ec_pwm for cheza-r1.  Probably we'll want a node that looks
-	 * like the one in rk3399-gru-kevin.dts for cheza-r1.
-	 */
-	backlight: backlight {
-		compatible = "gpio-backlight";
-
-		pinctrl-names = "default";
-
-		default-on;
-	};
-
 	panel: panel {
 		compatible ="innolux,tv123wam";
 		status = "okay";
 		power-supply = <&edp_panel_bias>;
-		enable-gpios = <&tlmm 37 GPIO_ACTIVE_HIGH>;
 		backlight = <&backlight>;
 
 		ports {
@@ -607,7 +593,7 @@ edp_brij_i2c: &i2c3 {
 		reg = <0x2d>;
 
 		interrupt-parent = <&tlmm>;
-		interrupts = <31 2>;
+		interrupts = <10 IRQ_TYPE_EDGE_FALLING>;
 
 		vpll-supply = <&src_pp1800_s4a>;
 		vccio-supply = <&src_pp1800_s4a>;
@@ -619,7 +605,9 @@ edp_brij_i2c: &i2c3 {
 
 		/* TODO: need a sleep config? */
 		pinctrl-names = "default";
-		#sound-dai-cells = <1>;
+		pinctrl-0 = <&edp_brij_en>;
+
+		enable-gpios = <&tlmm 102 GPIO_ACTIVE_HIGH>;
 
 		ports {
 			#address-cells = <1>;

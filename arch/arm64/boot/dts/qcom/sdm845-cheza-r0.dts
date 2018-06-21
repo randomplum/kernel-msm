@@ -12,18 +12,30 @@
 / {
 	model = "Google Cheza";
 	compatible = "google,cheza-rev0", "google,cheza", "qcom,sdm845";
+
+	backlight: backlight {
+		compatible = "gpio-backlight";
+		pinctrl-names = "default";
+		pinctrl-0 = <&edp_bkltctl>;
+		gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
+		default-on;
+	};
 };
 
 &sn65dsi86_bridge {
-	pinctrl-0 = <&edp_brij_en>;
-	enable-gpios = <&tlmm 102 GPIO_ACTIVE_HIGH>;
 	/delete-property/clocks;
 	/delete-property/clock-names;
 };
 
-&backlight {
-	pinctrl-0 = <&edp_bkltctl>;
-	gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
+&panel {
+	/*
+	 * NOTE: this is really the backlight enable, but we'll hack it in
+	 * here for cheza-r0 since gpio-backlight doesn't support a separate
+	 * enable pin.
+	 */
+	pinctrl-names = "default";
+	pinctrl-0 = <&ap_edp_bklten>;
+	enable-gpios = <&tlmm 37 GPIO_ACTIVE_HIGH>;
 };
 
 /*
