@@ -374,15 +374,20 @@
 			#power-domain-cells = <1>;
 		};
 
-		qfprom@780000 {
+		qfprom@784000 {
 			compatible = "qcom,qfprom";
 			reg = <0x780000 0x8ff>;
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			qusb2p_hstx_trim: hstx-trim@1eb {
+			qusb2p_hstx_trim: hstx-trim-primary@1eb {
 				reg = <0x1eb 0x1>;
 				bits = <1 4>;
+			};
+
+			qusb2s_hstx_trim: hstx-trim-secondary@1eb {
+				reg = <0x1eb 0x2>;
+				bits = <6 4>;
 			};
 		};
 
@@ -1548,6 +1553,8 @@
 			clock-names = "cfg_ahb", "ref";
 
 			resets = <&gcc GCC_QUSB2PHY_SEC_BCR>;
+
+			nvmem-cells = <&qusb2s_hstx_trim>;
 		};
 
 		usb_1_qmpphy: phy@88e9000 {
