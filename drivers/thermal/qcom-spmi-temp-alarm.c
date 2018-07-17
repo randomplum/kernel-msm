@@ -37,7 +37,9 @@
 #define STATUS_GEN2_STATE_MASK		GENMASK(6, 4)
 #define STATUS_GEN2_STATE_SHIFT		4
 
-#define SHUTDOWN_CTRL1_OVERRIDE_MASK	GENMASK(7, 6)
+#define SHUTDOWN_CTRL1_OVERRIDE_S2	BIT(6)
+#define SHUTDOWN_CTRL1_OVERRIDE_S2_MASK	GENMASK(6, 6)
+#define SHUTDOWN_CTRL1_OVERRIDE_S3_MASK	GENMASK(7, 7)
 #define SHUTDOWN_CTRL1_THRESHOLD_MASK	GENMASK(1, 0)
 
 #define ALARM_CTRL_FORCE_ENABLE		BIT(7)
@@ -198,7 +200,8 @@ static irqreturn_t qpnp_tm_isr(int irq, void *data)
  * current thermal stage and threshold. Setup threshold control and
  * disable shutdown override.
  */
-static int qpnp_tm_init(struct qpnp_tm_chip *chip)
+static int qpnp_tm_init(struct qpnp_tm_chip *chip,
+			bool disable_stage2_shutdown)
 {
 	unsigned int stage;
 	int ret;
@@ -224,13 +227,18 @@ static int qpnp_tm_init(struct qpnp_tm_chip *chip)
 			     (stage - 1) * TEMP_STAGE_STEP +
 			     TEMP_THRESH_MIN;
 
-	/*
-	 * Set threshold and disable software override of stage 2 and 3
-	 * shutdowns.
-	 */
+	/* Set threshold and disable software override of stage 3 shutdown. */
 	chip->thresh = THRESH_MIN;
-	reg &= ~(SHUTDOWN_CTRL1_OVERRIDE_MASK | SHUTDOWN_CTRL1_THRESHOLD_MASK);
+	reg &= ~(SHUTDOWN_CTRL1_OVERRIDE_S3_MASK |
+		 SHUTDOWN_CTRL1_THRESHOLD_MASK);
 	reg |= chip->thresh & SHUTDOWN_CTRL1_THRESHOLD_MASK;
+
+	/* Disable stage 2 shutdown if requested */
+	if (disable_stage2_shutdown)
+		reg |= SHUTDOWN_CTRL1_OVERRIDE_S2;
+	else
+		reg &= ~SHUTDOWN_CTRL1_OVERRIDE_S2_MASK;
+
 	ret = qpnp_tm_write(chip, QPNP_TM_REG_SHUTDOWN_CTRL1, reg);
 	if (ret < 0)
 		return ret;
@@ -248,6 +256,7 @@ static int qpnp_tm_probe(struct platform_device *pdev)
 	struct device_node *node;
 	u8 type, subtype;
 	u32 res;
+	bool stage2_shutdown_disabled;
 	int ret, irq;
 
 	node = pdev->dev.of_node;
@@ -299,7 +308,10 @@ static int qpnp_tm_probe(struct platform_device *pdev)
 
 	chip->subtype = subtype;
 
-	ret = qpnp_tm_init(chip);
+	stage2_shutdown_disabled = of_property_read_bool(node,
+						"stage2-shutdown-disabled");
+
+	ret = qpnp_tm_init(chip, stage2_shutdown_disabled);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "init failed\n");
 		goto fail;
