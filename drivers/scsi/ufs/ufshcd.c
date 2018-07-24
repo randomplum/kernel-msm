@@ -6045,7 +6045,7 @@ u8 cros_configuration_descriptor[0x90] = {
 
 	// LUN 0
 	0x01, // 0, bLUEnable
-	0x01, // 1, bBootLunID
+	0x00, // 1, bBootLunID
 	0x00, // 2, bLUWriteProtect
 	0x00, // 3, bMemoryType
 	0x00, 0x00, 0x01, 0x00, // 4, # of Allocation Blocks
