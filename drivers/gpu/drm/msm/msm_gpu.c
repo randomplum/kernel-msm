@@ -307,12 +307,11 @@ static void recover_worker(struct work_struct *work)
 	submit = find_submit(cur_ring, cur_ring->memptrs->fence + 1);
 	if (submit) {
 		struct task_struct *task;
+		char *cmd = NULL;
 
 		rcu_read_lock();
 		task = pid_task(submit->pid, PIDTYPE_PID);
 		if (task) {
-			char *cmd;
-
 			/*
 			 * So slightly annoying, in other paths like
 			 * mmap'ing gem buffers, mmap_sem is acquired
@@ -326,7 +325,10 @@ static void recover_worker(struct work_struct *work)
 			mutex_unlock(&dev->struct_mutex);
 			cmd = kstrdup_quotable_cmdline(task, GFP_KERNEL);
 			mutex_lock(&dev->struct_mutex);
+		}
+		rcu_read_unlock();
 
+		if (cmd) {
 			dev_err(dev->dev, "%s: offending task: %s (%s)\n",
 				gpu->name, task->comm, cmd);
 
@@ -337,7 +339,6 @@ static void recover_worker(struct work_struct *work)
 		} else {
 			msm_rd_dump_submit(priv->hangrd, submit, NULL);
 		}
-		rcu_read_unlock();
 	}
 
 
