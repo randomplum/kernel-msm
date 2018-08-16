@@ -17,6 +17,7 @@
 #include <dt-bindings/reset/qcom,sdm845-pdc.h>
 #include <dt-bindings/soc/qcom,rpmh-rsc.h>
 #include <dt-bindings/soc/qcom,ipa.h>
+#include <dt-bindings/thermal/thermal.h>
 
 / {
 	interrupt-parent = <&intc>;
@@ -123,6 +124,7 @@
 			capacity-dmips-mhz = <607>;
 			sched-energy-costs = <&SDM845_CPU_COST_0 &SDM845_CLUSTER_COST_0>;
 			freq-energy-model;
+			#cooling-cells = <2>; /* min followed by max */
 
 			L2_0: l2-cache {
 				compatible = "cache";
@@ -194,6 +196,7 @@
 			qcom,freq-domain = <&cpufreq_hw 1>;
 			sched-energy-costs = <&SDM845_CPU_COST_1 &SDM845_CLUSTER_COST_1>;
 			freq-energy-model;
+			#cooling-cells = <2>; /* min followed by max */
 
 			L2_400: l2-cache {
 				compatible = "cache";
@@ -2706,6 +2709,14 @@
 					type = "critical";
 				};
 			};
+
+			cooling-maps {
+				map0 {
+					trip = <&cpu_alert0>;
+					cooling-device =
+						<&CPU0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+				};
+			};
 		};
 
 		cpu1-thermal {
@@ -2725,6 +2736,14 @@
 					temperature = <110000>;
 					hysteresis = <1000>;
 					type = "critical";
+				};
+			};
+
+			cooling-maps {
+				map0 {
+					trip = <&cpu_alert1>;
+					cooling-device =
+						<&CPU0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
 				};
 			};
 		};
@@ -2748,6 +2767,14 @@
 					type = "critical";
 				};
 			};
+
+			cooling-maps {
+				map0 {
+					trip = <&cpu_alert2>;
+					cooling-device =
+						<&CPU0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+				};
+			};
 		};
 
 		cpu3-thermal {
@@ -2767,6 +2794,14 @@
 					temperature = <110000>;
 					hysteresis = <1000>;
 					type = "critical";
+				};
+			};
+
+			cooling-maps {
+				map0 {
+					trip = <&cpu_alert3>;
+					cooling-device =
+						<&CPU0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
 				};
 			};
 		};
@@ -2790,6 +2825,14 @@
 					type = "critical";
 				};
 			};
+
+			cooling-maps {
+				map0 {
+					trip = <&cpu_alert4>;
+					cooling-device =
+						<&CPU4 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+				};
+			};
 		};
 
 		cpu5-thermal {
@@ -2809,6 +2852,14 @@
 					temperature = <110000>;
 					hysteresis = <1000>;
 					type = "critical";
+				};
+			};
+
+			cooling-maps {
+				map0 {
+					trip = <&cpu_alert5>;
+					cooling-device =
+						<&CPU4 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
 				};
 			};
 		};
@@ -2832,6 +2883,14 @@
 					type = "critical";
 				};
 			};
+
+			cooling-maps {
+				map0 {
+					trip = <&cpu_alert6>;
+					cooling-device =
+						<&CPU4 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+				};
+			};
 		};
 
 		cpu7-thermal {
@@ -2851,6 +2910,14 @@
 					temperature = <110000>;
 					hysteresis = <1000>;
 					type = "critical";
+				};
+			};
+
+			cooling-maps {
+				map0 {
+					trip = <&cpu_alert7>;
+					cooling-device =
+						<&CPU4 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
 				};
 			};
 		};
