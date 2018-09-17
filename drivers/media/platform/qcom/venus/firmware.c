@@ -43,6 +43,10 @@ static void venus_reset_cpu(struct venus_core *core)
 	writel(VENUS_FW_MEM_SIZE, base + WRAPPER_CPA_END_ADDR);
 	writel(0x0, base + WRAPPER_CPU_CGC_DIS);
 	writel(0x0, base + WRAPPER_CPU_CLOCK_CONFIG);
+#define WRAPPER_NP_START_ADDR                  (WRAPPER_BASE + 0x1030)
+#define WRAPPER_NP_END_ADDR                    (WRAPPER_BASE + 0x1034)
+writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NP_START_ADDR);
+writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NP_END_ADDR);
 
 	/* Bring ARM9 out of reset */
 	writel(0, base + WRAPPER_A9SS_SW_RESET);
