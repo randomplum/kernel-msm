@@ -1522,6 +1522,11 @@
 			};
 		};
 
+		llcc: cache-controller@1100000 {
+			compatible = "qcom,sdm845-llcc";
+			reg = <0x1100000 0x250000>;
+		};
+
 		gpu@5000000 {
 			compatible = "qcom,adreno-630.2", "qcom,adreno";
 			#stream-id-cells = <16>;
