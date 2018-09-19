@@ -353,7 +353,7 @@ void dpu_kms_encoder_enable(struct drm_encoder *encoder)
 
 	if (crtc && crtc->state->active) {
 		trace_dpu_kms_enc_enable(DRMID(crtc));
-		dpu_crtc_commit_kickoff(crtc);
+		dpu_crtc_commit_kickoff(crtc, false);
 	}
 }
 
@@ -370,7 +370,8 @@ static void dpu_kms_commit(struct msm_kms *kms, struct drm_atomic_state *state)
 
 		if (crtc->state->active) {
 			trace_dpu_kms_commit(DRMID(crtc));
-			dpu_crtc_commit_kickoff(crtc);
+			dpu_crtc_commit_kickoff(crtc,
+						state->legacy_cursor_update);
 		}
 	}
 }
