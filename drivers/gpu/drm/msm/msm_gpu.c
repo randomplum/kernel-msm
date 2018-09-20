@@ -358,6 +358,9 @@ static void msm_gpu_crashstate_capture(struct msm_gpu *gpu,
 	if (gpu->crashstate)
 		return;
 
+	if (!gpu->funcs->gpu_state_get)
+		return;
+
 	state = gpu->funcs->gpu_state_get(gpu);
 	if (IS_ERR_OR_NULL(state))
 		return;
