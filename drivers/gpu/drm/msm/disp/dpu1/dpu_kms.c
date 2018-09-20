@@ -862,20 +862,20 @@ static int dpu_kms_hw_init(struct msm_kms *kms)
 
 	if (!kms) {
 		DPU_ERROR("invalid kms\n");
-		goto end;
+		return rc;
 	}
 
 	dpu_kms = to_dpu_kms(kms);
 	dev = dpu_kms->dev;
 	if (!dev) {
 		DPU_ERROR("invalid device\n");
-		goto end;
+		return rc;
 	}
 
 	rc = dpu_dbg_init(&dpu_kms->pdev->dev);
 	if (rc) {
 		DRM_ERROR("failed to init dpu dbg: %d\n", rc);
-		goto end;
+		return rc;
 	}
 
 	priv = dev->dev_private;
@@ -1056,7 +1056,6 @@ error:
 	_dpu_kms_hw_destroy(dpu_kms);
 dbg_destroy:
 	dpu_dbg_destroy();
-end:
 	return rc;
 }
 
@@ -1161,7 +1160,7 @@ static int __maybe_unused dpu_runtime_suspend(struct device *dev)
 	ddev = dpu_kms->dev;
 	if (!ddev) {
 		DPU_ERROR("invalid drm_device\n");
-		goto exit;
+		return rc;
 	}
 
 	rc = dpu_power_resource_enable(&dpu_kms->phandle,
@@ -1173,7 +1172,6 @@ static int __maybe_unused dpu_runtime_suspend(struct device *dev)
 	if (rc)
 		DPU_ERROR("clock disable failed rc:%d\n", rc);
 
-exit:
 	return rc;
 }
 
@@ -1188,13 +1186,13 @@ static int __maybe_unused dpu_runtime_resume(struct device *dev)
 	ddev = dpu_kms->dev;
 	if (!ddev) {
 		DPU_ERROR("invalid drm_device\n");
-		goto exit;
+		return rc;
 	}
 
 	rc = msm_dss_enable_clk(mp->clk_config, mp->num_clk, true);
 	if (rc) {
 		DPU_ERROR("clock enable failed rc:%d\n", rc);
-		goto exit;
+		return rc;
 	}
 
 	rc = dpu_power_resource_enable(&dpu_kms->phandle,
@@ -1202,7 +1200,6 @@ static int __maybe_unused dpu_runtime_resume(struct device *dev)
 	if (rc)
 		DPU_ERROR("resource enable failed: %d\n", rc);
 
-exit:
 	return rc;
 }
 
