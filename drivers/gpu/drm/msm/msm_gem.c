@@ -1094,7 +1094,18 @@ struct drm_gem_object *msm_gem_import(struct drm_device *dev,
 		return ERR_PTR(-EINVAL);
 	}
 
-	size = PAGE_ALIGN(dmabuf->size);
+	//size = PAGE_ALIGN(dmabuf->size);
+	// XXX hack because v4l gives us bogus dmabuf->size (it appears to be
+	// size of all planes, not the individual plane)
+	{
+	struct scatterlist *s;
+	unsigned int i;
+	size = 0;
+	for_each_sg(sgt->sgl, s, sgt->nents, i) {
+		size += s->length;
+	}
+	}
+	size = PAGE_ALIGN(size);
 
 	ret = msm_gem_new_impl(dev, size, MSM_BO_WC, dmabuf->resv, &obj,
 			false);
