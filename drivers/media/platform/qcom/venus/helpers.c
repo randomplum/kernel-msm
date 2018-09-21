@@ -388,6 +388,7 @@ static int load_scale_clocks(struct venus_core *core)
 	}
 
 set_freq:
+	freq = table[0].freq;
 
 	ret = clk_set_rate(clk, freq);
 	if (ret)
