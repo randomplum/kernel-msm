@@ -1550,7 +1550,7 @@
 
 			operating-points-v2 = <&gpu_opp_table>;
 
-			gmu = <&gmu>;
+			qcom,gmu = <&gmu>;
 		};
 
 		kgsl_smmu: arm,smmu-kgsl@5040000 {
@@ -1578,8 +1578,10 @@
 		gmu: gmu@506a000 {
 			compatible="qcom,adreno-gmu";
 
-			reg = <0x506a000 0x30000>, <0xb200000 0x300000>;
-			reg-names = "gmu", "gmu_pdc";
+			reg = <0x506a000 0x30000>,
+				<0xb280000 0x10000>,
+				<0xb480000 0x10000>;
+			reg-names = "gmu", "gmu_pdc", "gmu_pdc_seq";
 
 			interrupts = <GIC_SPI 304 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 305 IRQ_TYPE_LEVEL_HIGH>;
