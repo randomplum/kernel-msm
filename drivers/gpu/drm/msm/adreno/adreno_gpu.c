@@ -90,12 +90,12 @@ adreno_request_fw(struct adreno_gpu *adreno_gpu, const char *fwname)
 
 		ret = request_firmware_direct(&fw, newname, drm->dev);
 		if (!ret) {
-			dev_info(drm->dev, "loaded %s from new location\n",
+			DRM_DEV_INFO(drm->dev, "loaded %s from new location\n",
 				newname);
 			adreno_gpu->fwloc = FW_LOCATION_NEW;
 			goto out;
 		} else if (adreno_gpu->fwloc != FW_LOCATION_UNKNOWN) {
-			dev_err(drm->dev, "failed to load %s: %d\n",
+			DRM_DEV_ERROR(drm->dev, "failed to load %s: %d\n",
 				newname, ret);
 			fw = ERR_PTR(ret);
 			goto out;
@@ -110,12 +110,12 @@ adreno_request_fw(struct adreno_gpu *adreno_gpu, const char *fwname)
 
 		ret = request_firmware_direct(&fw, fwname, drm->dev);
 		if (!ret) {
-			dev_info(drm->dev, "loaded %s from legacy location\n",
+			DRM_DEV_INFO(drm->dev, "loaded %s from legacy location\n",
 				newname);
 			adreno_gpu->fwloc = FW_LOCATION_LEGACY;
 			goto out;
 		} else if (adreno_gpu->fwloc != FW_LOCATION_UNKNOWN) {
-			dev_err(drm->dev, "failed to load %s: %d\n",
+			DRM_DEV_ERROR(drm->dev, "failed to load %s: %d\n",
 				fwname, ret);
 			fw = ERR_PTR(ret);
 			goto out;
@@ -131,19 +131,19 @@ adreno_request_fw(struct adreno_gpu *adreno_gpu, const char *fwname)
 
 		ret = request_firmware(&fw, newname, drm->dev);
 		if (!ret) {
-			dev_info(drm->dev, "loaded %s with helper\n",
+			DRM_DEV_INFO(drm->dev, "loaded %s with helper\n",
 				newname);
 			adreno_gpu->fwloc = FW_LOCATION_HELPER;
 			goto out;
 		} else if (adreno_gpu->fwloc != FW_LOCATION_UNKNOWN) {
-			dev_err(drm->dev, "failed to load %s: %d\n",
+			DRM_DEV_ERROR(drm->dev, "failed to load %s: %d\n",
 				newname, ret);
 			fw = ERR_PTR(ret);
 			goto out;
 		}
 	}
 
-	dev_err(drm->dev, "failed to load %s\n", fwname);
+	DRM_DEV_ERROR(drm->dev, "failed to load %s\n", fwname);
 	fw = ERR_PTR(-ENOENT);
 out:
 	kfree(newname);
@@ -213,7 +213,7 @@ int adreno_hw_init(struct msm_gpu *gpu)
 		ret = msm_gem_get_iova(ring->bo, gpu->aspace, &ring->iova);
 		if (ret) {
 			ring->iova = 0;
-			dev_err(gpu->dev->dev,
+			DRM_DEV_ERROR(gpu->dev->dev,
 				"could not map ringbuffer %d: %d\n", i, ret);
 			return ret;
 		}
@@ -278,7 +278,7 @@ void adreno_recover(struct msm_gpu *gpu)
 
 	ret = msm_gpu_hw_init(gpu);
 	if (ret) {
-		dev_err(dev->dev, "gpu hw init failed: %d\n", ret);
+		DRM_DEV_ERROR(dev->dev, "gpu hw init failed: %d\n", ret);
 		/* hmm, oh well? */
 	}
 }
@@ -636,7 +636,7 @@ static int adreno_get_legacy_pwrlevels(struct device *dev)
 
 	node = of_get_compatible_child(dev->of_node, "qcom,gpu-pwrlevels");
 	if (!node) {
-		dev_err(dev, "Could not find the GPU powerlevels\n");
+		DRM_DEV_ERROR(dev, "Could not find the GPU powerlevels\n");
 		return -ENXIO;
 	}
 
@@ -675,7 +675,7 @@ static int adreno_get_pwrlevels(struct device *dev,
 	else {
 		ret = dev_pm_opp_of_add_table(dev);
 		if (ret)
-			dev_err(dev, "Unable to set the OPP table\n");
+			DRM_DEV_ERROR(dev, "Unable to set the OPP table\n");
 	}
 
 	if (!ret) {
