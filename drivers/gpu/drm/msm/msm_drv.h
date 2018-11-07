@@ -325,6 +325,8 @@ void msm_gem_kernel_put(struct drm_gem_object *bo,
 struct drm_gem_object *msm_gem_import(struct drm_device *dev,
 		struct dma_buf *dmabuf, struct sg_table *sgt);
 
+void msm_gem_object_set_name(struct drm_gem_object *bo, const char *fmt, ...);
+
 int msm_framebuffer_prepare(struct drm_framebuffer *fb,
 		struct msm_gem_address_space *aspace);
 void msm_framebuffer_cleanup(struct drm_framebuffer *fb,
