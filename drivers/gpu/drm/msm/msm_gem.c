@@ -890,7 +890,8 @@ void msm_gem_free_object(struct drm_gem_object *obj)
 
 /* convenience method to construct a GEM buffer object, and userspace handle */
 int msm_gem_new_handle(struct drm_device *dev, struct drm_file *file,
-		uint32_t size, uint32_t flags, uint32_t *handle)
+		uint32_t size, uint32_t flags, uint32_t *handle,
+		char *name)
 {
 	struct drm_gem_object *obj;
 	int ret;
@@ -899,6 +900,9 @@ int msm_gem_new_handle(struct drm_device *dev, struct drm_file *file,
 
 	if (IS_ERR(obj))
 		return PTR_ERR(obj);
+
+	if (name)
+		msm_gem_object_set_name(obj, "%s", name);
 
 	ret = drm_gem_handle_create(file, obj, handle);
 
