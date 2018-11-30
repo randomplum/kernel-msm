@@ -77,7 +77,7 @@ TRACE_EVENT(msm_gpu_submit_retired,
 		    __entry->start_ticks = start;
 		    __entry->end_ticks = end;
 		    ),
-	    TP_printk("id=%d pid=%d ring=%d:%d elapsed=%d ns mhz=%lld start=%lld end=%lld",
+	    TP_printk("id=%d pid=%d ring=%d:%d elapsed=%lld ns mhz=%lld start=%lld end=%lld",
 		    __entry->id, __entry->pid, __entry->ringid, __entry->seqno,
 		    __entry->elapsed, __entry->clock,
 		    __entry->start_ticks, __entry->end_ticks)

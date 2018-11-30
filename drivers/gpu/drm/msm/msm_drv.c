@@ -865,7 +865,7 @@ static int msm_ioctl_gem_info(struct drm_device *dev, void *data,
 	struct drm_msm_gem_info *args = data;
 	struct drm_gem_object *obj;
 	struct msm_gem_object *msm_obj;
-	int ret = 0;
+	int i, ret = 0;
 
 	switch (args->info) {
 	case MSM_INFO_GET_OFFSET:
@@ -895,12 +895,20 @@ static int msm_ioctl_gem_info(struct drm_device *dev, void *data,
 		ret = msm_ioctl_gem_info_iova(dev, obj, &args->value);
 		break;
 	case MSM_INFO_SET_NAME:
-		if (args->len > sizeof(msm_obj->name)) {
+		/* length check should leave room for terminating null: */
+		if (args->len >= sizeof(msm_obj->name)) {
 			ret = -EINVAL;
 			break;
 		}
 		ret = copy_from_user(msm_obj->name,
 			u64_to_user_ptr(args->value), args->len);
+		msm_obj->name[args->len] = '\0';
+		for (i = 0; i < args->len; i++) {
+			if (!isprint(msm_obj->name[i])) {
+				msm_obj->name[i] = '\0';
+				break;
+																				}
+		}
 		break;
 	case MSM_INFO_GET_NAME:
 		if (args->value && (args->len < strlen(msm_obj->name))) {

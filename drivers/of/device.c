@@ -72,6 +72,14 @@ int of_device_add(struct platform_device *ofdev)
 	return device_add(&ofdev->dev);
 }
 
+static const struct of_device_id iommu_blacklist[] = {
+	{ .compatible = "qcom,mdp4" },
+	{ .compatible = "qcom,mdss" },
+	{ .compatible = "qcom,sdm845-mdss" },
+	{ .compatible = "qcom,adreno" },
+	{}
+};
+
 /**
  * of_dma_configure - Setup DMA configuration
  * @dev:	Device to apply DMA configuration
@@ -163,6 +171,11 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
 
 	dev_dbg(dev, "device is%sbehind an iommu\n",
 		iommu ? " " : " not ");
+
+	if (of_match_device(iommu_blacklist, dev)) {
+		dev_err(dev, "SKIPPING IOMMU HOOKUP\n");
+		iommu = NULL;
+	}
 
 	arch_setup_dma_ops(dev, dma_addr, size, iommu, coherent);
 
