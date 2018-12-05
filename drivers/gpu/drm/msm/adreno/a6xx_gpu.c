@@ -87,16 +87,20 @@ static void a6xx_submit(struct msm_gpu *gpu, struct msm_gem_submit *submit,
 	struct msm_ringbuffer *ring = submit->ring;
 	unsigned int i;
 
-	get_stats_counter(ring, REG_A6XX_RBBM_PERFCTR_CP_0_LO,
-		rbmemptr_stats(ring, index, cpcycles_start));
+	if (trace_msm_gpu_submit_retired_enabled()) {
+		OUT_PKT7(ring, CP_WAIT_FOR_IDLE, 0);
 
-	/*
-	 * For PM4 the GMU register offsets are calculated from the base of the
-	 * GPU registers so we need to add 0x1a800 to the register value on A630
-	 * to get the right value from PM4.
-	 */
-	get_stats_counter(ring, REG_A6XX_GMU_ALWAYS_ON_COUNTER_L + 0x1a800,
+		get_stats_counter(ring, REG_A6XX_RBBM_PERFCTR_CP_0_LO,
+			rbmemptr_stats(ring, index, cpcycles_start));
+
+		/*
+		 * For PM4 the GMU register offsets are calculated from the base of the
+		 * GPU registers so we need to add 0x1a800 to the register value on A630
+		 * to get the right value from PM4.
+		 */
+		get_stats_counter(ring, REG_A6XX_GMU_ALWAYS_ON_COUNTER_L + 0x1a800,
 		rbmemptr_stats(ring, index, alwayson_start));
+	}
 
 	/* Invalidate CCU depth and color */
 	OUT_PKT7(ring, CP_EVENT_WRITE, 1);
@@ -122,10 +126,14 @@ static void a6xx_submit(struct msm_gpu *gpu, struct msm_gem_submit *submit,
 		}
 	}
 
-	get_stats_counter(ring, REG_A6XX_RBBM_PERFCTR_CP_0_LO,
-		rbmemptr_stats(ring, index, cpcycles_end));
-	get_stats_counter(ring, REG_A6XX_GMU_ALWAYS_ON_COUNTER_L + 0x1a800,
-		rbmemptr_stats(ring, index, alwayson_end));
+	if (trace_msm_gpu_submit_retired_enabled()) {
+		OUT_PKT7(ring, CP_WAIT_FOR_IDLE, 0);
+
+		get_stats_counter(ring, REG_A6XX_RBBM_PERFCTR_CP_0_LO,
+			rbmemptr_stats(ring, index, cpcycles_end));
+		get_stats_counter(ring, REG_A6XX_GMU_ALWAYS_ON_COUNTER_L + 0x1a800,
+			rbmemptr_stats(ring, index, alwayson_end));
+	}
 
 	/* Write the fence to the scratch register */
 	OUT_PKT4(ring, REG_A6XX_CP_SCRATCH_REG(2), 1);
