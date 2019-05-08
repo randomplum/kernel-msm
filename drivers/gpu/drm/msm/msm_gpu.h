@@ -21,7 +21,6 @@
 #include <linux/clk.h>
 #include <linux/interconnect.h>
 #include <linux/regulator/consumer.h>
-#include <linux/interconnect.h>
 
 #include "msm_drv.h"
 #include "msm_fence.h"
@@ -119,7 +118,6 @@ struct msm_gpu {
 	int nr_clocks;
 	struct clk *ebi1_clk, *core_clk, *rbbmtimer_clk;
 	uint32_t fast_rate;
-	struct icc_path *path;
 
 	struct icc_path *icc_path;
 
