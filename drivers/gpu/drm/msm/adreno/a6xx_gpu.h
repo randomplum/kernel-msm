@@ -25,6 +25,10 @@ struct a6xx_gpu {
 
 #define to_a6xx_gpu(x) container_of(x, struct a6xx_gpu, base)
 
+#ifdef CONFIG_DEBUG_FS
+int a6xx_debugfs_init(struct msm_gpu *gpu, struct drm_minor *minor);
+#endif
+
 /*
  * Given a register and a count, return a value to program into
  * REG_CP_PROTECT_REG(n) - this will block both reads and writes for _len

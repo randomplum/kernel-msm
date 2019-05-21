@@ -821,6 +821,9 @@ static const struct adreno_gpu_funcs funcs = {
 #if defined(CONFIG_DEBUG_FS) || defined(CONFIG_DEV_COREDUMP)
 		.show = a6xx_show,
 #endif
+#if defined(CONFIG_DEBUG_FS)
+		.debugfs_init = a6xx_debugfs_init,
+#endif
 		.gpu_busy = a6xx_gpu_busy,
 		.gpu_get_freq = a6xx_gmu_get_freq,
 		.gpu_set_freq = a6xx_gmu_set_freq,
