@@ -309,6 +309,11 @@
 	};
 };
 
+&apps_smmu {
+	/* TODO: Figure out how to survive booting with this enabled */
+	status = "disabled";
+};
+
 &cdsp_pas {
 	firmware-name = "qcom/c630/cdsp.mdt";
 
