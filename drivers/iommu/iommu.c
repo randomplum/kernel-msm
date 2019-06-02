@@ -621,6 +621,35 @@ out:
 }
 
 /**
+ * of_blacklist_automatic_attach - check if device is on blacklist for
+ * automatic attach
+ * @dev: the device
+ *
+ * The automatic hookup of iommu and dma-ops is fundamentally broken in a
+ * number of important cases, so this maintains a blacklist of devices
+ * where the driver should be in charge.
+ *
+ * For example, if bootloader enables display and takes iommu out of bypass,
+ * automatic attaching a DMA domain could trigger iommu faults (due to active
+ * scanout) before driver has a chance to intervene.
+ *
+ * TODO maybe move this somewhere else
+ */
+#include <linux/of_device.h>
+static bool of_blacklist_automatic_attach(struct device *dev)
+{
+	static const struct of_device_id iommu_blacklist[] = {
+		{ .compatible = "qcom,mdp4" },
+		{ .compatible = "qcom,mdss" },
+		{ .compatible = "qcom,sdm845-mdss" },
+		{ .compatible = "qcom,adreno" },
+		{}
+	};
+
+	return of_match_device(iommu_blacklist, dev);
+}
+
+/**
  * iommu_group_add_device - add a device to an iommu group
  * @group: the group into which to add the device (reference should be held)
  * @dev: the device
@@ -674,7 +703,7 @@ rename:
 
 	mutex_lock(&group->mutex);
 	list_add_tail(&device->list, &group->devices);
-	if (group->domain)
+	if (group->domain && !of_blacklist_automatic_attach(dev))
 		ret = __iommu_attach_device(group->domain, dev);
 	mutex_unlock(&group->mutex);
 	if (ret)
