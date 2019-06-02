@@ -18,7 +18,6 @@ struct dpu_mdss {
 	struct msm_mdss base;
 	void __iomem *mmio;
 	unsigned long mmio_len;
-	u32 hwversion;
 	struct dss_module_power mp;
 	struct dpu_irq_controller irq_controller;
 };
@@ -233,10 +232,6 @@ int dpu_mdss_init(struct drm_device *dev)
 					 dpu_mdss);
 
 	pm_runtime_enable(dev->dev);
-
-	pm_runtime_get_sync(dev->dev);
-	dpu_mdss->hwversion = readl_relaxed(dpu_mdss->mmio);
-	pm_runtime_put_sync(dev->dev);
 
 	priv->mdss = &dpu_mdss->base;
 
