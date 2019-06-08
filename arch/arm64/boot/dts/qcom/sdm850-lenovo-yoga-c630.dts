@@ -314,11 +314,6 @@
 	};
 };
 
-&apps_smmu {
-	/* TODO: Figure out how to survive booting with this enabled */
-	status = "disabled";
-};
-
 &cdsp_pas {
 	firmware-name = "qcom/c630/cdsp.mdt";
 
@@ -495,7 +490,7 @@
 
 	edp_bridge_irq: edp-bridge-irq {
 		pins = "gpio10";
-		bias-bias-pull-down;
+		bias-pull-down;
 	};
 
 	i2c2_hid_active: i2c2-hid-active {
@@ -617,7 +612,7 @@
 	vdd-3.3-ch0-supply = <&vreg_l25a_3p3>;
 };
 
-/* PNCTRL - additions to nodes defined in sdm845.dtsi */
+/* PINCTRL - additions to nodes defined in sdm845.dtsi */
 
 &qup_i2c10_default {
 	pinconf {
