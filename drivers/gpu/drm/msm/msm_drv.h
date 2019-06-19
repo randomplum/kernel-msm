@@ -403,6 +403,7 @@ int msm_clk_bulk_get(struct device *dev, struct clk_bulk_data **bulk);
 
 struct clk *msm_clk_bulk_get_clock(struct clk_bulk_data *bulk, int count,
 	const char *name);
+bool msm_is_enabled(struct device *dev);
 void __iomem *msm_ioremap(struct platform_device *pdev, const char *name,
 		const char *dbgname);
 void msm_writel(u32 data, void __iomem *addr);
