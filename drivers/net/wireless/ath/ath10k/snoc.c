@@ -1396,6 +1396,7 @@ static int __ath10k_snoc_vreg_on(struct ath10k *ar,
 	ath10k_dbg(ar, ATH10K_DBG_SNOC, "snoc regulator %s being enabled\n",
 		   vreg_info->name);
 
+#if 0
 	ret = regulator_set_voltage(vreg_info->reg, vreg_info->min_v,
 				    vreg_info->max_v);
 	if (ret) {
@@ -1404,6 +1405,7 @@ static int __ath10k_snoc_vreg_on(struct ath10k *ar,
 			   vreg_info->name, vreg_info->min_v, vreg_info->max_v);
 		return ret;
 	}
+#endif
 
 	if (vreg_info->load_ua) {
 		ret = regulator_set_load(vreg_info->reg, vreg_info->load_ua);
@@ -1429,7 +1431,9 @@ static int __ath10k_snoc_vreg_on(struct ath10k *ar,
 err_enable:
 	regulator_set_load(vreg_info->reg, 0);
 err_set_load:
+#if 0
 	regulator_set_voltage(vreg_info->reg, 0, vreg_info->max_v);
+#endif
 
 	return ret;
 }
@@ -1451,9 +1455,11 @@ static int __ath10k_snoc_vreg_off(struct ath10k *ar,
 	if (ret < 0)
 		ath10k_err(ar, "failed to set load %s\n", vreg_info->name);
 
+#if 0
 	ret = regulator_set_voltage(vreg_info->reg, 0, vreg_info->max_v);
 	if (ret)
 		ath10k_err(ar, "failed to set voltage %s\n", vreg_info->name);
+#endif
 
 	return ret;
 }
