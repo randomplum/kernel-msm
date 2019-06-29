@@ -297,6 +297,12 @@ static int ti_sn_bridge_attach(struct drm_bridge *bridge)
 						   .node = NULL,
 						 };
 
+	if (gpiod_get_value(pdata->enable_gpio)) {
+		pm_runtime_enable(pdata->dev);
+		ti_sn_bridge_resume(pdata->dev);
+		ti_sn_bridge_suspend(pdata->dev);
+	}
+
 	ret = drm_connector_init(bridge->dev, &pdata->connector,
 				 &ti_sn_bridge_connector_funcs,
 				 DRM_MODE_CONNECTOR_eDP);
@@ -852,7 +858,7 @@ static int ti_sn_bridge_probe(struct i2c_client *client,
 	dev_set_drvdata(&client->dev, pdata);
 
 	pdata->enable_gpio = devm_gpiod_get(pdata->dev, "enable",
-					    GPIOD_OUT_LOW);
+					    GPIOD_ASIS);
 	if (IS_ERR(pdata->enable_gpio)) {
 		DRM_ERROR("failed to get enable gpio from DT\n");
 		ret = PTR_ERR(pdata->enable_gpio);
@@ -882,7 +888,9 @@ static int ti_sn_bridge_probe(struct i2c_client *client,
 	if (ret)
 		return ret;
 
-	pm_runtime_enable(pdata->dev);
+	if (!gpiod_get_value(pdata->enable_gpio)) {
+		pm_runtime_enable(pdata->dev);
+	}
 
 	i2c_set_clientdata(client, pdata);
 
