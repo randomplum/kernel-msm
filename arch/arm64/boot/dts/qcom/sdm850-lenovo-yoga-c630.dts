@@ -22,15 +22,29 @@
 		hsuart0 = &uart6;
 	};
 
-	panel {
+	ivo_panel {
 		compatible = "ivo,m133nwf4-r0";
 		power-supply = <&vlcm_3v3>;
 		no-hpd;
 
 		ports {
 			port {
-				panel_in_edp: endpoint {
-					remote-endpoint = <&sn65dsi86_out>;
+				ivo_panel_in_edp: endpoint {
+					remote-endpoint = <&sn65dsi86_out_ivo>;
+				};
+			};
+		};
+	};
+
+	boe_panel {
+		compatible = "boe,nv133fhm-n61";
+		power-supply = <&vlcm_3v3>;
+		no-hpd;
+
+		ports {
+			port {
+				boe_panel_in_edp: endpoint {
+					remote-endpoint = <&sn65dsi86_out_boe>;
 				};
 			};
 		};
@@ -436,9 +450,18 @@
 			};
 
 			port@1 {
+				#address-cells = <1>;
+				#size-cells = <0>;
 				reg = <1>;
-				sn65dsi86_out: endpoint {
-					remote-endpoint = <&panel_in_edp>;
+
+				sn65dsi86_out_boe: endpoint@c4 {
+					reg = <0xc4>;
+					remote-endpoint = <&boe_panel_in_edp>;
+				};
+
+				sn65dsi86_out_ivo: endpoint@c5 {
+					reg = <0xc5>;
+					remote-endpoint = <&ivo_panel_in_edp>;
 				};
 			};
 		};
