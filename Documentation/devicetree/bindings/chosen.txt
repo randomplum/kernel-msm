@@ -68,6 +68,75 @@ on PowerPC "stdout" if "stdout-path" is not found.  However, the
 "linux,stdout-path" and "stdout" properties are deprecated. New platforms
 should only use the "stdout-path" property.
 
+panel-id
+--------
+
+For devices that have multiple possible display panels (multi-sourcing the
+display panels is common on laptops, phones, tablets), this allows the
+bootloader to communicate which panel is installed, e.g.
+
+/ {
+	chosen {
+		panel-id = <0xc4>;
+	};
+
+	ivo_panel {
+		compatible = "ivo,m133nwf4-r0";
+		power-supply = <&vlcm_3v3>;
+		no-hpd;
+
+		ports {
+			port {
+				ivo_panel_in_edp: endpoint {
+					remote-endpoint = <&sn65dsi86_out_ivo>;
+				};
+			};
+		};
+	};
+
+	boe_panel {
+		compatible = "boe,nv133fhm-n61";
+		power-supply = <&vlcm_3v3>;
+		no-hpd;
+
+		ports {
+			port {
+				boe_panel_in_edp: endpoint {
+					remote-endpoint = <&sn65dsi86_out_boe>;
+				};
+			};
+		};
+	};
+
+	display_or_bridge_device {
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			...
+
+			port@0 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0>;
+
+				endpoint@c4 {
+					reg = <0xc4>;
+					remote-endpoint = <&boe_panel_in_edp>;
+				};
+
+				endpoint@c5 {
+					reg = <0xc5>;
+					remote-endpoint = <&ivo_panel_in_edp>;
+				};
+			};
+		};
+	}
+};
+
+Note that panel-id values can be sparse (ie. not just integers 0..n).
+
 linux,booted-from-kexec
 -----------------------
 
