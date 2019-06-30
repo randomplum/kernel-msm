@@ -274,3 +274,24 @@ int drm_of_find_panel_or_bridge(const struct device_node *np,
 	return ret;
 }
 EXPORT_SYMBOL_GPL(drm_of_find_panel_or_bridge);
+
+/**
+ * drm_of_find_panel_id - return id of panel from chosen
+ *
+ * Returns the panel id, or zero if none specified
+ */
+int drm_of_find_panel_id(void)
+{
+	struct device_node *np = NULL;
+	u32 panel_id;
+
+	np = of_find_node_by_path("/chosen");
+	if (!np)
+		return 0;
+
+	if (of_property_read_u32(np, "panel-id", &panel_id))
+		return 0;
+
+	return panel_id;
+}
+EXPORT_SYMBOL_GPL(drm_of_find_panel_id);

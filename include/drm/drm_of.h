@@ -35,6 +35,8 @@ int drm_of_find_panel_or_bridge(const struct device_node *np,
 				int port, int endpoint,
 				struct drm_panel **panel,
 				struct drm_bridge **bridge);
+int drm_of_find_panel_id(void);
+
 #else
 static inline uint32_t drm_of_crtc_port_mask(struct drm_device *dev,
 					  struct device_node *port)
@@ -76,6 +78,11 @@ static inline int drm_of_find_panel_or_bridge(const struct device_node *np,
 					      struct drm_bridge **bridge)
 {
 	return -EINVAL;
+}
+
+static inline int drm_of_find_panel_id(void)
+{
+	return 0;
 }
 #endif
 
