@@ -66,6 +66,53 @@ static struct screen_info *setup_graphics(efi_system_table_t *sys_table_arg)
 	return si;
 }
 
+/*
+ * We (at least currently) don't care about most of the fields, just
+ * panel_id:
+ */
+struct mdp_disp_info {
+	u32 version_info;
+	u32 pad0[9];
+	u32 panel_id;
+	u32 pad1[17];
+};
+
+#define MDP_DISP_INFO_VERSION_MAGIC 0xaa
+
+static void get_panel_id(efi_system_table_t *sys_table_arg,
+			 unsigned long fdt_addr)
+{
+	efi_guid_t gop_proto = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+	efi_status_t status;
+	struct mdp_disp_info *disp_info;
+	unsigned long size = 0;
+
+	status = efi_call_runtime(get_variable, L"UEFIDisplayInfo",
+				  &gop_proto, NULL, &size, NULL);
+	if (status == EFI_NOT_FOUND)
+		return;
+
+	status = efi_call_early(allocate_pool, EFI_LOADER_DATA, size,
+				(void **)&disp_info);
+	if (status != EFI_SUCCESS)
+		return;
+
+	status = efi_call_runtime(get_variable, L"UEFIDisplayInfo",
+				  &gop_proto, NULL, &size, disp_info);
+	if (status != EFI_SUCCESS)
+		goto cleanup;
+
+	if ((disp_info->version_info >> 16) != MDP_DISP_INFO_VERSION_MAGIC)
+		goto cleanup;
+
+	efi_printk(sys_table_arg, "found a panel-id!\n");
+
+	set_chosen_panel_id(fdt_addr, disp_info->panel_id);
+
+cleanup:
+	efi_call_early(free_pool, disp_info);
+}
+
 void install_memreserve_table(efi_system_table_t *sys_table_arg)
 {
 	struct linux_efi_memreserve *rsv;
@@ -225,6 +272,8 @@ unsigned long efi_entry(void *handle, efi_system_table_t *sys_table,
 
 	if (!fdt_addr)
 		pr_efi(sys_table, "Generating empty DTB\n");
+
+	get_panel_id(sys_table, fdt_addr);
 
 	status = handle_cmdline_files(sys_table, image, cmdline_ptr, "initrd=",
 				      efi_get_max_initrd_addr(dram_base,
