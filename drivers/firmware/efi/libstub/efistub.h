@@ -39,6 +39,8 @@ void efi_char16_printk(efi_system_table_t *, efi_char16_t *);
 
 unsigned long get_dram_base(efi_system_table_t *sys_table_arg);
 
+void set_chosen_panel_id(unsigned long fdt_addr, unsigned panel_id);
+
 efi_status_t allocate_new_fdt_and_exit_boot(efi_system_table_t *sys_table,
 					    void *handle,
 					    unsigned long *new_fdt_addr,

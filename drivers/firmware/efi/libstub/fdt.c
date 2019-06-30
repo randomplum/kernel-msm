@@ -200,6 +200,15 @@ static efi_status_t update_fdt_memmap(void *fdt, struct efi_boot_memmap *map)
 	return EFI_SUCCESS;
 }
 
+void set_chosen_panel_id(unsigned long fdt_addr, unsigned panel_id)
+{
+	void *fdt = (void *)fdt_addr;
+	int node = fdt_subnode_offset(fdt, 0, "chosen");
+	u32 fdt_val32 = cpu_to_fdt32(panel_id);
+
+	fdt_setprop_var(fdt, node, "panel-id", fdt_val32);
+}
+
 #ifndef EFI_FDT_ALIGN
 # define EFI_FDT_ALIGN EFI_PAGE_SIZE
 #endif
