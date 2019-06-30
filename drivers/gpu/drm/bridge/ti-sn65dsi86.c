@@ -829,7 +829,7 @@ static int ti_sn_bridge_probe(struct i2c_client *client,
 			      const struct i2c_device_id *id)
 {
 	struct ti_sn_bridge *pdata;
-	int ret;
+	int ret, panel_id;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		DRM_ERROR("device doesn't support I2C\n");
@@ -850,7 +850,8 @@ static int ti_sn_bridge_probe(struct i2c_client *client,
 
 	pdata->dev = &client->dev;
 
-	ret = drm_of_find_panel_or_bridge(pdata->dev->of_node, 1, 0,
+	panel_id = drm_of_find_panel_id();
+	ret = drm_of_find_panel_or_bridge(pdata->dev->of_node, 1, panel_id,
 					  &pdata->panel, NULL);
 	if (ret) {
 		DRM_ERROR("could not find any panel node\n");
