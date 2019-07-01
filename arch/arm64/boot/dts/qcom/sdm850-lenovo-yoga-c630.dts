@@ -73,7 +73,7 @@
 };
 
 &adsp_pas {
-	firmware-name = "qcom/c630/adsp.mdt";
+	firmware-name = "qcom/c630/qcadsp850.mbn";
 
 	status = "okay";
 };
@@ -310,7 +310,7 @@
 };
 
 &cdsp_pas {
-	firmware-name = "qcom/c630/cdsp.mdt";
+	firmware-name = "qcom/c630/qccdsp850.mbn";
 
 	status = "okay";
 };
@@ -463,7 +463,7 @@
 };
 
 &mss_pil {
-	firmware-name = "qcom/c630/qcdsp1v2850.mbn", "qcom/c630/modem.mdt";
+	firmware-name = "qcom/c630/qcdsp1v2850.mbn", "qcom/c630/qcdsp2850.mbn";
 };
 
 &qupv3_id_0 {
