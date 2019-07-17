@@ -207,7 +207,7 @@ static int rpmh_regulator_is_enabled(struct regulator_dev *rdev)
 {
 	struct rpmh_vreg *vreg = rdev_get_drvdata(rdev);
 
-	return vreg->enabled;
+	return vreg->enabled > 0;
 }
 
 static int rpmh_regulator_set_enable_state(struct regulator_dev *rdev,
