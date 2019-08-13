@@ -7,6 +7,7 @@
 #include <linux/spinlock.h>
 #include <linux/shmem_fs.h>
 #include <linux/dma-buf.h>
+#include <linux/dma-noncoherent.h>
 #include <linux/pfn_t.h>
 
 #include "msm_drv.h"
@@ -32,43 +33,27 @@ static bool use_pages(struct drm_gem_object *obj)
 	return !msm_obj->vram_node;
 }
 
-/*
- * Cache sync.. this is a bit over-complicated, to fit dma-mapping
- * API.  Really GPU cache is out of scope here (handled on cmdstream)
- * and all we need to do is invalidate newly allocated pages before
- * mapping to CPU as uncached/writecombine.
- *
- * On top of this, we have the added headache, that depending on
- * display generation, the display's iommu may be wired up to either
- * the toplevel drm device (mdss), or to the mdp sub-node, meaning
- * that here we either have dma-direct or iommu ops.
- *
- * Let this be a cautionary tail of abstraction gone wrong.
- */
-
 static void sync_for_device(struct msm_gem_object *msm_obj)
 {
 	struct device *dev = msm_obj->base.dev->dev;
+	struct scatterlist *sg;
+	int i;
 
-	if (get_dma_ops(dev)) {
-		dma_sync_sg_for_device(dev, msm_obj->sgt->sgl,
-			msm_obj->sgt->nents, DMA_BIDIRECTIONAL);
-	} else {
-		dma_map_sg(dev, msm_obj->sgt->sgl,
-			msm_obj->sgt->nents, DMA_BIDIRECTIONAL);
+	for_each_sg(msm_obj->sgt->sgl, sg, msm_obj->sgt->nents, i) {
+		arch_sync_dma_for_device(dev, sg_phys(sg), sg->length,
+				DMA_BIDIRECTIONAL);
 	}
 }
 
 static void sync_for_cpu(struct msm_gem_object *msm_obj)
 {
 	struct device *dev = msm_obj->base.dev->dev;
+	struct scatterlist *sg;
+	int i;
 
-	if (get_dma_ops(dev)) {
-		dma_sync_sg_for_cpu(dev, msm_obj->sgt->sgl,
-			msm_obj->sgt->nents, DMA_BIDIRECTIONAL);
-	} else {
-		dma_unmap_sg(dev, msm_obj->sgt->sgl,
-			msm_obj->sgt->nents, DMA_BIDIRECTIONAL);
+	for_each_sg(msm_obj->sgt->sgl, sg, msm_obj->sgt->nents, i) {
+		arch_sync_dma_for_cpu(dev, sg_phys(sg), sg->length,
+				DMA_BIDIRECTIONAL);
 	}
 }
 
