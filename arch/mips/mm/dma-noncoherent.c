@@ -131,6 +131,7 @@ void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
 {
 	dma_sync_phys(paddr, size, dir);
 }
+EXPORT_SYMBOL_GPL(arch_sync_dma_for_device);
 
 #ifdef CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU
 void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
@@ -139,6 +140,7 @@ void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
 	if (cpu_needs_post_dma_flush(dev))
 		dma_sync_phys(paddr, size, dir);
 }
+EXPORT_SYMBOL_GPL(arch_sync_dma_for_cpu);
 #endif
 
 void arch_dma_cache_sync(struct device *dev, void *vaddr, size_t size,

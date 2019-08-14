@@ -40,6 +40,10 @@ void drm_clflush_sg(struct sg_table *st);
 void drm_clflush_virt_range(void *addr, unsigned long length);
 bool drm_need_swiotlb(int dma_bits);
 
+#if defined(CONFIG_X86) || defined(__powerpc__) || defined(CONFIG_ARM64)
+#define HAS_DRM_CACHE 1
+#endif
+
 
 static inline bool drm_arch_can_wc_memory(void)
 {
