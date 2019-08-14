@@ -87,7 +87,7 @@ static void __dma_page_cpu_to_dev(phys_addr_t paddr, size_t size,
 void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
 		size_t size, enum dma_data_direction dir)
 {
-	__dma_page_cpu_to_dev(phys_to_page(paddr), paddr % PAGE_SIZE, size, dir);
+	__dma_page_cpu_to_dev(paddr, size, dir);
 }
 EXPORT_SYMBOL_GPL(arch_sync_dma_for_device);
 
@@ -103,7 +103,7 @@ static void __dma_page_dev_to_cpu(phys_addr_t paddr, size_t size,
 void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
 		size_t size, enum dma_data_direction dir)
 {
-	__dma_page_dev_to_cpu(phys_to_page(paddr), paddr % PAGE_SIZE, size, dir);
+	__dma_page_dev_to_cpu(paddr, size, dir);
 }
 EXPORT_SYMBOL_GPL(arch_sync_dma_for_cpu);
 
