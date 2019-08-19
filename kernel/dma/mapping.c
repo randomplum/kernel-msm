@@ -379,3 +379,9 @@ size_t dma_max_mapping_size(struct device *dev)
 	return size;
 }
 EXPORT_SYMBOL_GPL(dma_max_mapping_size);
+
+void dma_prep_coherent(struct page *page, size_t size)
+{
+	arch_dma_prep_coherent(page, size);
+}
+EXPORT_SYMBOL_GPL(dma_prep_coherent);

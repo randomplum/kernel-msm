@@ -35,6 +35,7 @@ static bool use_pages(struct drm_gem_object *obj)
 
 static void sync_for_device(struct msm_gem_object *msm_obj)
 {
+#if 0
 	struct device *dev = msm_obj->base.dev->dev;
 	struct scatterlist *sg;
 	int i;
@@ -43,10 +44,18 @@ static void sync_for_device(struct msm_gem_object *msm_obj)
 		arch_sync_dma_for_device(dev, sg_phys(sg), sg->length,
 				DMA_BIDIRECTIONAL);
 	}
+#else
+	int i, npages = msm_obj->base.size >> PAGE_SHIFT;
+
+	for (i = 0; i < npages; i++) {
+		dma_prep_coherent(msm_obj->pages[i], PAGE_SIZE);
+	}
+#endif
 }
 
 static void sync_for_cpu(struct msm_gem_object *msm_obj)
 {
+#if 0
 	struct device *dev = msm_obj->base.dev->dev;
 	struct scatterlist *sg;
 	int i;
@@ -55,6 +64,7 @@ static void sync_for_cpu(struct msm_gem_object *msm_obj)
 		arch_sync_dma_for_cpu(dev, sg_phys(sg), sg->length,
 				DMA_BIDIRECTIONAL);
 	}
+#endif
 }
 
 /* allocate pages from VRAM carveout, used when no IOMMU: */
