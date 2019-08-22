@@ -264,11 +264,6 @@ void dpu_vbif_clear_errors(struct dpu_kms *dpu_kms)
 	struct dpu_hw_vbif *vbif;
 	u32 i, pnd, src;
 
-	if (!dpu_kms) {
-		DPU_ERROR("invalid argument\n");
-		return;
-	}
-
 	for (i = 0; i < ARRAY_SIZE(dpu_kms->hw_vbif); i++) {
 		vbif = dpu_kms->hw_vbif[i];
 		if (vbif && vbif->ops.clear_errors) {
@@ -285,11 +280,6 @@ void dpu_vbif_init_memtypes(struct dpu_kms *dpu_kms)
 {
 	struct dpu_hw_vbif *vbif;
 	int i, j;
-
-	if (!dpu_kms) {
-		DPU_ERROR("invalid argument\n");
-		return;
-	}
 
 	for (i = 0; i < ARRAY_SIZE(dpu_kms->hw_vbif); i++) {
 		vbif = dpu_kms->hw_vbif[i];
