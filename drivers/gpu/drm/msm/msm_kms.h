@@ -34,9 +34,8 @@ struct msm_kms_funcs {
 	void (*prepare_commit)(struct msm_kms *kms, struct drm_atomic_state *state);
 	void (*commit)(struct msm_kms *kms, struct drm_atomic_state *state);
 	void (*complete_commit)(struct msm_kms *kms, struct drm_atomic_state *state);
-	/* functions to wait for atomic commit completed on each CRTC */
-	void (*wait_for_crtc_commit_done)(struct msm_kms *kms,
-					struct drm_crtc *crtc);
+	void (*wait_flush)(struct msm_kms *kms, unsigned crtc_mask);
+
 	/* get msm_format w/ optional format modifiers from drm_mode_fb_cmd2 */
 	const struct msm_format *(*get_format)(struct msm_kms *kms,
 					const uint32_t format,
@@ -97,5 +96,9 @@ struct msm_mdss {
 
 int mdp5_mdss_init(struct drm_device *dev);
 int dpu_mdss_init(struct drm_device *dev);
+
+#define for_each_crtc_mask(dev, crtc, crtc_mask) \
+	list_for_each_entry(crtc, &(dev)->mode_config.crtc_list, head) \
+		for_each_if (BIT((crtc)->index) & (crtc_mask))
 
 #endif /* __MSM_KMS_H__ */
