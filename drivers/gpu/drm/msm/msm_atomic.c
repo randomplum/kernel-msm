@@ -35,8 +35,10 @@ static void msm_atomic_async_commit(struct msm_kms *kms, int crtc_idx)
 
 	mutex_lock(&kms->commit_lock);
 
-	if (!(kms->pending_crtc_mask & crtc_mask))
-		goto out;
+	if (!(kms->pending_crtc_mask & crtc_mask)) {
+		mutex_unlock(&kms->commit_lock);
+		return;
+	}
 
 	kms->pending_crtc_mask &= ~crtc_mask;
 
@@ -47,18 +49,17 @@ static void msm_atomic_async_commit(struct msm_kms *kms, int crtc_idx)
 	 */
 	DRM_DEBUG_ATOMIC("triggering async commit\n");
 	kms->funcs->flush_commit(kms, crtc_mask);
+	mutex_unlock(&kms->commit_lock);
 
 	/*
 	 * Wait for flush to complete:
 	 */
 	kms->funcs->wait_flush(kms, crtc_mask);
 
+	mutex_lock(&kms->commit_lock);
 	kms->funcs->complete_commit(kms, crtc_mask);
-	kms->funcs->disable_commit(kms);
-
-out:
 	mutex_unlock(&kms->commit_lock);
-
+	kms->funcs->disable_commit(kms);
 }
 
 static enum hrtimer_restart msm_atomic_pending_timer(struct hrtimer *t)
@@ -214,15 +215,17 @@ void msm_atomic_commit_tail(struct drm_atomic_state *state)
 	 */
 	DRM_DEBUG_ATOMIC("triggering commit\n");
 	kms->funcs->flush_commit(kms, crtc_mask);
+	mutex_unlock(&kms->commit_lock);
 
 	/*
 	 * Wait for flush to complete:
 	 */
 	kms->funcs->wait_flush(kms, crtc_mask);
 
+	mutex_lock(&kms->commit_lock);
 	kms->funcs->complete_commit(kms, crtc_mask);
-	kms->funcs->disable_commit(kms);
 	mutex_unlock(&kms->commit_lock);
+	kms->funcs->disable_commit(kms);
 
 	drm_atomic_helper_commit_hw_done(state);
 	drm_atomic_helper_cleanup_planes(dev, state);
