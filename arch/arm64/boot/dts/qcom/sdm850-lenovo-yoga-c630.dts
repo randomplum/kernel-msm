@@ -395,6 +395,14 @@
 //		pinctrl-names = "default";
 //		pinctrl-0 = <&i2c2_hid_active>;
 	};
+	hid@2c {
+		compatible = "hid-over-i2c";
+		reg = < 0x2c >;
+		hid-descr-addr = < 0x20 >;
+		interrupts-extended = < 0x1b 0x25 0x01 >;
+		pinctrl-names = "default";
+		pinctrl-0 = < 0x1c >;
+	};
 };
 
 &i2c5 {

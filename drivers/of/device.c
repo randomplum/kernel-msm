@@ -163,8 +163,14 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
 	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
 		return -EPROBE_DEFER;
 
-	dev_dbg(dev, "device is%sbehind an iommu\n",
+	dev_info(dev, "device is%sbehind an iommu\n",
 		iommu ? " " : " not ");
+
+	if ((strcmp("5000000.gpu", dev_name(dev)) == 0) ||
+	    (strcmp("ae00000.mdss", dev_name(dev)) == 0)) {
+		WARN_ON(iommu);
+		dev_warn(dev, "driver=%pF, iommu=%lx\n", dev->driver, (uintptr_t)iommu);
+	}
 
 	arch_setup_dma_ops(dev, dma_addr, size, iommu, coherent);
 

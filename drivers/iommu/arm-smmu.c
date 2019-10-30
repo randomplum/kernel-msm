@@ -1409,6 +1409,13 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 		return -ENXIO;
 	}
 
+	if ((strcmp("5000000.gpu", dev_name(dev)) == 0) ||
+	    (strcmp("ae00000.mdss", dev_name(dev)) == 0)) {
+		WARN_ON(domain->type != IOMMU_DOMAIN_UNMANAGED);
+	}
+	dev_warn(dev, "attaching iommu\n");
+//	dump_stack();
+
 	/*
 	 * FIXME: The arch/arm DMA API code tries to attach devices to its own
 	 * domains between of_xlate() and add_device() - we have no way to cope

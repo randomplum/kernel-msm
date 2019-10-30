@@ -222,7 +222,7 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
 		dev_dbg(dev, "Adding to IOMMU failed: %d\n", err);
 		ops = NULL;
 	} else if (dev->driver && dev->driver->driver_manages_iommu) {
-		dev_dbg(dev, "Driver manages IOMMU\n");
+		dev_info(dev, "Driver manages IOMMU\n");
 		ops = NULL;
 	}
 
