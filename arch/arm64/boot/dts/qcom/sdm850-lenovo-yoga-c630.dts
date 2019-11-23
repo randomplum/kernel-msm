@@ -579,7 +579,7 @@
 
 	edp_bridge_irq: edp-bridge-irq {
 		pins = "gpio10";
-		bias-bias-pull-down;
+		bias-pull-down;
 	};
 
 	i2c2_hid_active: i2c2-hid-active {
