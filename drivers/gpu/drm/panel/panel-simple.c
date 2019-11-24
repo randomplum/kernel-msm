@@ -1862,7 +1862,7 @@ static const struct panel_desc ivo_m133nwf4_r0 = {
 	},
 };
 
-static const struct drm_display_mode ivo_nv133fhm_n61_modes = {
+static const struct drm_display_mode boe_nv133fhm_n61_modes = {
 	.clock = 147840,
 	.hdisplay = 1920,
 	.hsync_start = 1920 + 48,
@@ -1875,8 +1875,8 @@ static const struct drm_display_mode ivo_nv133fhm_n61_modes = {
 	.vrefresh = 60,
 };
 
-static const struct panel_desc ivo_nv133fhm_n61 = {
-	.modes = &ivo_nv133fhm_n61_modes,
+static const struct panel_desc boe_nv133fhm_n61 = {
+	.modes = &boe_nv133fhm_n61_modes,
 	.num_modes = 1,
 	.bpc = 8,
 	.size = {
@@ -3319,8 +3319,8 @@ static const struct of_device_id platform_of_match[] = {
 		.compatible = "ivo,m133nwf4-r0",
 		.data = &ivo_m133nwf4_r0,
 	}, {
-		.compatible = "ivo,nv133fhm-n61",
-		.data = &ivo_nv133fhm_n61,
+		.compatible = "boe,nv133fhm-n61",
+		.data = &boe_nv133fhm_n61,
 	}, {
 		.compatible = "koe,tx14d24vm1bpa",
 		.data = &koe_tx14d24vm1bpa,
